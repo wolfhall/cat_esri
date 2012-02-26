@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__) 
+require 'rubygems'
+require 'cat_esri'
+require 'trollop'
+
+crawler = CatEsri::Crawler.new(STDOUT)
+ARGV << "-h" if ARGV.size == 0 #force help message if no args
+
+opts = Trollop::options do
+  version "LogicalCat: cat_esri #{CatEsri::VERSION} (c) 2012 LogicalCat LLC"
+  banner <<-EOS
+o-----------------------------------------------------------------------------o
+| Collect text content and file attributes from ESRI shapefiles, Personal     |
+| Geodatabases (windows only) and File Geodatabases (bit of a hack)           |
+o-----------------------------------------------------------------------------o
+|                                                                             |
+|                         LogicalCat ESRI crawler                             |
+|                                                                             |
+|               Usage: cat_esri -p <path> [other options]                     |
+|                                                                             |
+| Examples:                                                                   |
+|                                                                             |
+| Crawl a path and list shapefile locations to the console:                   |
+|  cat_esri -p P:\\geodata\\maps -f list                                        |
+|                                                                             |
+| Same crawl, but write results to .csv file:                                 |
+|  cat_esri -p P:\\geodata\\maps -f csv -o C:\\temp\\report.csv                   |
+|                                                                             |
+| Same crawl, write results to .csv file, label the set:                      |
+|  cat_esri -p P:\\geodata\\maps -f csv -o C:\\report.csv -n mymaps              |
+|                                                                             |
+| Include ESRI geodatabases; export to sqlite3 format:                        |
+|  cat_esri -p P:\\geodata\\maps -e -f sqlite3 -o C:\\temp\\report.db             |
+|                                                                             |
+| Crawl path for shapefiles, including GeoGraphix layers (normally skipped):  |
+|  cat_esri -p P:\\geodata\\maps -g                                             |
+|                                                                             |
+| Use -q to exclude subdirectories from a crawl:                              |
+|  cat_esri -p P:\\geodata -q "P:\\geodata\\skip_me|P:\\geodata\\me_too"           |
+|  (separate multiple paths with a '|' character)                             |
+|                                                                             |
+|                                                                             |
+| NOTE: The outfile name gets renamed by adding the metadata type and a       |
+| time stamp. For example, a crawl with this outfile:                         |
+|                                                                             |
+|    "c:\\my_folder\\geo_stuff.csv"                                             |
+|                                                                             |
+| ...would get renamed to something like this...                              |
+|                                                                             |
+|    "c:\\my_folder\\geo_stuff_MAP_1292987884.csv"                              |
+|                                                                             |
+o-----------------------------------------------------------------------------o
+EOS
+
+  opt :path, "Network path to scan", :type => String
+  opt :logfile, "Log crawl activity to file", :type => String
+  opt :timeout, "Timeout for some long-running tasks", :default => 10
+  opt :format, "Output format: csv, sqlite3, list", :type => String, :default => 'sqlite3'
+  opt :xitems, "Maximum items per outfile", :default => 50000
+  opt :outfile, "Write crawl results to a file", :type => String
+  opt :esrigdb, "Include ESRI personal and file geodatabases", :default => false
+  opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
+  opt :label, "Name used as label for this crawl", :short => 'n', :type => String
+  opt :quell, "Exclude crawl subdirectories", :type => String
+end
+
+Trollop::die :path, "Cannot be blank" if opts[:path] == nil
+Trollop::die :path, "Path must exist" unless File.exist?(opts[:path])
+Trollop::die :format, "Unknown format type: '#{opts[:format]}'" unless CatEsri::FORMATS.include?(opts[:format])
+if opts[:format] != 'list' && opts[:outfile] == nil
+  x = "#{Time.now.to_i}.#{opts.format}"
+  puts "\n"
+  puts "(outfile not specified, will use: #{x})"
+  puts "\n"
+  opts[:outfile] = x
+end
+
+opts[:path] = File.expand_path(opts[:path]) if opts[:path]
+opts[:logfile] = File.expand_path(opts[:logfile]) if opts[:logfile]
+opts[:outfile] = File.expand_path(opts[:outfile]) if opts[:outfile]
+
+#protect against invalid outfile and logfile paths before wasting time crawling
+if opts[:outfile] =~ /\\/ || opts[:outfile] =~ /\//
+  Trollop::die :outfile, "Invalid outfile path." unless File.exist?(File.dirname(File.expand_path(opts[:outfile])))
+end
+if opts[:logfile] =~ /\\/ || opts[:logfile] =~ /\//
+  Trollop::die :logfile, "Invalid logfile path." unless File.exist?(File.dirname(File.expand_path(opts[:logfile])))
+end
+
+crawler.options = opts
+crawler.scan
