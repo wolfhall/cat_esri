@@ -1,7 +1,3 @@
-require "logger"
-require "sqlite3"
-require "csv"
-
 module CatEsri
   
   FORMATS = %w(sqlite3 csv list)

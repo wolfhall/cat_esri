@@ -1,9 +1,3 @@
-require "timeout"
-require "dbf"
-require "geo_ruby"
-include GeoRuby::SimpleFeatures
-include GeoRuby::Shp4r
-
 module CatEsri
 
   #----------

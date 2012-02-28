@@ -1,6 +1,3 @@
-require "find"
-require "etc"
-
 module CatEsri
   
   #----------

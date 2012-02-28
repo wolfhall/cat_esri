@@ -1,6 +1,3 @@
-require "digest/md5"
-require "socket"
-
 module CatEsri
   # A collection of utility methods
   
