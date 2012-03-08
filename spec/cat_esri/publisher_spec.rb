@@ -1,65 +1,53 @@
 require 'spec_helper'
 
 module CatEsri
-  
+
   #----------
   describe Publisher do
-      
+
     let(:output) { double('output').as_null_object }
     let(:crawler) { Crawler.new(output) }
-    
-    def get_tmps
-      Dir.glob("#{@testdata}/**/*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].{tmp}")
+
+    def get_tmps(type)
+      Dir.glob("#{@testdata}/**/*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].{#{type}}")
     end
-        
+
     before {
       @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
-      @tempfile = File.join(@testdata,'test.tmp')
-      opts = {
-        :outfile=>@tempfile,
-        :outfile_given=>true,
-        :path_given=>true,
-        :path=>@testdata, 
-        :help=>false,
-        :esrigdb=>false,
-        :esrigdb_given=>false,
-        :ggxlayer=>false,
-        :ggxlayer_given=>false,
-        :logfile=>nil,
-        :format=>"csv",
-        :timeout=>30,
-        :xitems=>50000,
-        :version=>false
-        }
-      crawler.options = opts
+
+      crawler.options = {
+        :path => @testdata,
+        :outdir => @testdata,
+        :xitems => 50000
+      }
     }
-    
+
     after{
-      Dir.entries(@testdata).each { |f|  File.delete(File.join(@testdata,f)) if f.match(/.*_MAP_\d{16}.tmp/) }      
+      Dir.entries(@testdata).each { |f|  File.delete(File.join(@testdata,f)) if f.match(/MAP_\d{16}/) }
     }
-    
-    
+
+
     #----------
     describe "#autoname" do
-      
-      it "should correctly rename a file by type" do
-        opts = { :outfile => File.join(@testdata,'tmp.txt'), :xitems => 50000, :format => 'text' }
-        Publisher.new(opts).autoname('map').should =~ /.*tmp_MAP_\d{16}.txt/
+
+      it "should correctly rename and timestamp a file by type" do
+        opts = { :format => 'csv', :outdir => @testdata }
+        Publisher.new(opts).autoname('map').should match(/MAP_\d{16}.csv/)
       end
-      
+
     end
-    
-    
+
+
     #----------
     describe "#publish" do
-        
+
       it "should output more than one file if xitems is exceeded" do
         crawler.options[:path] = @testdata
         crawler.options[:ggxlayer] = true
         crawler.options[:xitems] = 5
         crawler.options[:format] = 'csv'
         crawler.scan
-        get_tmps.size.should == 2
+        get_tmps('csv').size.should == 2
       end
 
       it "should write the correct number of items when writing to multiple files" do
@@ -69,7 +57,7 @@ module CatEsri
         crawler.options[:format] = 'sqlite3'
         crawler.scan
         count = 0
-        get_tmps.each do |p|
+        get_tmps('sqlite3').each do |p|
           db = SQLite3::Database.new(p)
           count += db.execute("select count(*) from maps;")[0][0]
           db.close
@@ -80,20 +68,20 @@ module CatEsri
       it "should write sqlite3 formatted file" do
         crawler.options[:format] = 'sqlite3'
         crawler.scan
-        db = SQLite3::Database.new(get_tmps[0])
+        db = SQLite3::Database.new(get_tmps('sqlite3')[0])
         table_names = db.execute("SELECT * FROM sqlite_master WHERE type='table';")
-        /maps/.match(table_names.join(' ')).to_s.should == 'maps'
+        table_names.join(' ').to_s.should match(/maps/)
         db.close
       end
 
       it "should write csv formatted file" do
         crawler.options[:format] = 'csv'
         crawler.scan
-        File.open(get_tmps[0]) {|f| f.readline}.should =~ /,+/
+        File.open(get_tmps('csv')[0]) {|f| f.readline}.should =~ /,+/
       end
 
     end
-      
+
   end
- 
+
 end

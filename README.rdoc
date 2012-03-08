@@ -2,12 +2,11 @@
 
 == Description
 
-LogicalCat <b>cat_esri</b> is a command line utility for collecting metadata content and various file
-attributes from ESRI shapefiles and geodatabases by recursively crawling the supplied path and parsing file
-components. It can list item paths to the screen or export full metadata in .csv or sqlite3 formats. E&P
-data managers or technicians can use it to locate scattered shapefiles, identify duplicates using a special
-composite checksum, get X/Y boundaries, get coordinate systems, etc. See the <b>fields</b> section below
-for details.
+LogicalCat <b>cat_esri</b> is a command line utility for collecting metadata content and various file attributes
+from ESRI shapefiles and geodatabases by recursively crawling the supplied path and parsing file components. It
+can export full metadata in .csv or sqlite3 formats. E&P data managers or technicians can use it to locate
+scattered shapefiles, identify duplicates using a special composite checksum, get X/Y boundaries, get coordinate
+systems, etc. See the <b>fields</b> section below for details.
 
 <b>cat_esri</b> is part of a suite of crawlers that work with LogicalCat's Simple E&P Search Engine to provide
 full text search and reporting for messy geo-computing environments. Contact LogicalCat LLC for more details.
@@ -35,7 +34,7 @@ cat_discovery:: LMKR GeoGraphix Discovery project crawler
 == Requirements
 
 LogicalCat <b>cat_esri</b> works on Windows and Unix-based operating systems, however the Personal
-Geodatabase parser only works on Windows. The <b>cat_esri</b> crawler was developed on Ruby 1.9.2 and
+Geodatabase parser only works on Windows. The <b>cat_esri</b> crawler was developed on Ruby 1.9.3 and
 depends on the following gems:
 
 * trollop
@@ -68,18 +67,18 @@ GeoGraphix Discovery's GeoAtlas layers (www.geographix.com) are excluded by defa
 cat_discovery 'map' crawl.
 
   -f    --format
-Output format: list, csv (comma separated values) or sqlite3. Default = list.
-List format shows locations only; see http://www.sqlite.org/ for info about sqlite3.
+Output format: csv (comma separated values) or sqlite3 database. Default is sqlite3.
+See http://www.sqlite.org/ for info about sqlite3.
 
   -x    --xitems
 Maximum items per outfile. Default = 50000; writes new file if exceeded.
 Items are held in memory before writing; very high values may cause problems.
 See note about outfile timestamp naming below.
 
-  -o    --outfile
-Write crawl results to file, paths should be quoted. If csv or sqlite3 formats are selected
-but no outfile supplied, an outfile will be auto-generated: <timestamp>.<extension>.
-It's a good idea to match the file extension of the outfile with the format.
+  -o    --outdir
+The directory for output files. Crawler file names are auto-generated based on data type,
+a timestamp, and an extension based on selected format. For example, a crawl of digital log
+curves using sqlite3 format might be: DIGCURVE_1392987864628876.sqlite
 
   -n    --label
 Apply an arbitrary label to the crawl results. Labels can be used to help filter or group
@@ -87,52 +86,32 @@ multiple crawls later. Use a business unit, vendor or other logical group name.
 
   -q    --quell
 Exclude crawl subdirectories. Use --quell to stop recursion on folders under the path that
-should not be scanned. Separate multiple exclusions with the pipe symbol, '|':
-cat_esri -p "X:\stuff" -q "X:\stuff\secret|X:\stuff\boring|X:\stuff\hidden"
+should not be scanned. Separate multiple exclusions with a question mark, '?':
+cat_esri -p "X:\stuff" -q "X:\stuff\secret?X:\stuff\boring?X:\stuff\hidden"
 
-NOTE: The outfile you supply will get RENAMED!
-The outfile you supply will get renamed by adding the metadata type and a time stamp to the
-file name. This prevents naming collisions when multiple crawlers are writing to a common location.
-For example, an outfile path of:
+  NOTE: Any paths or labels containing spaces should be enclosed in quotes!
 
-  "c:\my_folder\geo_stuff.csv"
-
-    ...will get renamed to something like...
-
-  "c:\my_folder\geo_stuff_MAP_1292987884.csv"
 
 == Usage
 
-Crawl path on the X: drive and list item locations to console, no output file generated:
-  cat_esri -p "X:\geodata\curve data" -f list
+Crawl path on the X: drive and write output to c:\temp in default sqlite3 format:
+  cat_esri -p "X:\geodata\gis data" -o c:\temp
 
-Crawl path on the X: drive. By default, the format is sqlite3 and an output file is auto-generated:
-  cat_esri -p "X:\geodata\curve data"
+Same crawl as above, log activity to file, and include GeoGraphix layers:
+  cat_esri -p "X:\geodata\gis data" -o c:\temp -l "c:\temp\crawler.log" -g
 
-Same crawl as above but log activity to file, and include GeoGraphix layers:
-  cat_esri -p "X:\geodata\curve data" -l "c:\temp\crawler.log" -g -f list
-
-Output to .csv format, write only 1000 items per outfile:
-  cat_esri -p "X:\geodata\curve data" -x 1000 -f csv -o "c:\temp\logfiles.csv"
+Output to .csv format, write only 100 items per outfile:
+  cat_esri -p "X:\geodata\gis data" -x 100 -f csv -o "c:\temp"
 
 Output to .csv format, write only 1000 items per outfile, set 45 second timeout:
-  cat_esri -p "X:\geodata\curve data" -x 1000 -f csv -o "c:\temp\logfiles.csv" -t 45
+  cat_esri -p "X:\geodata\gis data" -x 1000 -f csv -o "c:\temp" -t 45
 
 Crawl a UNC path, output to sqlite3, exclude one subdirectory:
-  cat_esri -p "\\server\stuff" -f sqlite3 -o "c:\temp\esri.db" -q "\\server\stuff\secret"
+  cat_esri -p "\\server\stuff" -f sqlite3 -o "c:\temp" -q "\\server\stuff\secret"
 
 Crawl a UNC path, output to sqlite3, exclude two subdirectories:
-  cat_esri -p "\\server\stuff" -f sqlite3 -o "c:\temp\esri.db" -q "\\server\stuff\secret|\\server\stuff\dull"
+  cat_esri -p "\\server\stuff" -f sqlite3 -o "c:\temp" -q "\\server\stuff\secret?\\server\stuff\dull"
 
-== Configuration for LogicalCat Search Engine
-
-The LogicalCat Search Engine can process sqlite3 crawler files for reporting and full text search.
-It may also be convenient to set the -o / --output path of the crawler output files to match the
-"crawl depot" defined in the browser app. Writing files elsewhere and copying them to the depot
-works too, but it's an extra step.
-
-File name, -x / --xitems count or even crawl output files with duplicate content will not affect
-the browser app's functionality, but a lot of duplicate data will slow down the "ingest" function.
 
 == Fields
 
