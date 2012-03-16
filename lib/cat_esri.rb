@@ -7,6 +7,10 @@ require "sqlite3"
 require "csv"
 require "digest/md5"
 require "socket"
+require "zip/zip"
+require "yaml"
+require "aws-sdk"
+require "attr_encrypted"
 require "geo_ruby"
 include GeoRuby::SimpleFeatures
 include GeoRuby::Shp4r

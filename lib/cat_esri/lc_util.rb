@@ -1,6 +1,6 @@
 module CatEsri
   # A collection of utility methods
-  
+
   #----------
   # Construct an MD5 checksum based on all bytes if the file is < CS_MAXMB or
   # on smaller chunks from the head and tail if the file is > CS_MAXMB.
@@ -12,13 +12,13 @@ module CatEsri
     begin
       inc_digest = Digest::MD5.new
       cs = "unset"
-      b = File.size(path)    
+      b = File.size(path)
       f = File.open(path, 'rb')
       if (b < CS_MAXMB)
         # small enough. read entire file
         inc_digest << f.read
         cs = inc_digest.hexdigest
-      elsif (b > CS_MAXMB && b < 2**30) 
+      elsif (b > CS_MAXMB && b < 2**30)
         # checksum just chunks. one from head, one from tail
         inc_digest << f.read(CS_CHUNK)
         f.pos = b-(CS_CHUNK)
@@ -35,16 +35,16 @@ module CatEsri
       raise e
     end
   end
-  
-  
+
+
   #----------
   # Just a hostname.
   def hostname
     Socket.gethostname
   end
-  
+
   #----------
-  # use with Find/prune to avoid getting kicked out of recursion due to 
+  # use with Find/prune to avoid getting kicked out of recursion due to
   # inaccessible folders
   def inaccessible_dir?(d)
     return if File.file?(d)
@@ -55,11 +55,11 @@ module CatEsri
     end
     return false
   end
-  
+
   #----------
   # Accept an array of strings (or possibly other arrays) and chop the whole thing
-  # down to a cloud of unstructured unique "words" with most troublesome chars and numerics 
-  # stripped out. This cloud can be used for text search indexes on data types that may not 
+  # down to a cloud of unstructured unique "words" with most troublesome chars and numerics
+  # stripped out. This cloud can be used for text search indexes on data types that may not
   # necessarily contain formatted text and have a lot of redundancy (like shapefiles).
   def get_uniq_cloud(a)
     ucloud = []
@@ -74,21 +74,21 @@ module CatEsri
     end
     return ucloud.join(' ')
   end
-  
-  
+
+
   #----------
   # Basically like checksum, but accepts a string and doesn't worry about size.
   # Slashes are normalized to prevent unix/windows/ruby slash weirdness.
   def guidify(s)
     inc_digest = Digest::MD5.new
-    inc_digest << s.downcase.gsub('/','').gsub('\\','') 
+    inc_digest << s.downcase.gsub('/','').gsub('\\','')
     return inc_digest.hexdigest
   end
-  
-  
+
+
   #----------
-  # Tokenize a string in a somewhat ridiculous way. This allows all the chunks of 
-  # files with complex naming conventions (even short fragments) to get parsed with 
+  # Tokenize a string in a somewhat ridiculous way. This allows all the chunks of
+  # files with complex naming conventions (even short fragments) to get parsed with
   # conservative lexers.
   def mince(s)
     x = ""
@@ -97,7 +97,7 @@ module CatEsri
       when 0
         x << " "
       when (1..47)
-        x << " "      
+        x << " "
       when (48..57)
         x << b.chr
       when (58..64)
@@ -112,8 +112,8 @@ module CatEsri
     end
     return x.squeeze(' ').strip
   end
-  
-  
+
+
   #----------
   # Paranoid removal of scary characters and stringification of hash keys for
   # easier digestion into sqlite and csv formats.
@@ -121,7 +121,7 @@ module CatEsri
     h.each_pair { |k,v| h[k] = v.to_s.encode("UTF-8", undef: :replace, replace: "?") unless v.nil?}
     h.each_pair {|k,v| h[k] = v.to_s.gsub('\'','').gsub('\`','').gsub(',','').gsub('\"','').gsub('|','').strip }
   end
-  
+
   #----------
   # use consistent slashes depending on OS
   def normal_seps(s)
@@ -136,7 +136,7 @@ module CatEsri
   # convenience class for dealing with MS Access via ADO on Windows
   # http://rubyonwindows.blogspot.com/2007/06/using-ruby-ado-to-work-with-ms-access.html
   class AccessDb
-    
+
     attr_accessor :mdb, :connection, :data, :fields
 
     def initialize(mdb=nil)
@@ -164,7 +164,7 @@ module CatEsri
         @data = recordset.GetRows.transpose
       rescue
         @data = []
-      end      
+      end
       recordset.Close
     end
 
@@ -179,8 +179,43 @@ module CatEsri
     def close
       @connection.Close
     end
-    
+
+  end
+
+  #----------
+  # compress (zip) a single file's contents and encrypt it using the supplied encryption_key
+  # Note this does not support zipping directories and the file sizes should not exceed RAM comfort
+  class Crypto
+    attr_encrypted :data, :key => :my_key, :marshal => true
+
+    def initialize(key)
+      @key = key
+    end
+
+    def my_key
+      @key
+    end
+
+    def write_cryptozip_file(path)
+      self.data = File.read(path)
+      outpath = File.join(File.dirname(path), File.basename(path,'.*') + '.zip')
+      Zip::ZipFile.open(outpath, Zip::ZipFile::CREATE) do |zf|
+        zf.get_output_stream(File.basename(path)) { |f| f << self.encrypted_data }
+      end
+    end
+
+    def read_cryptozip_file(path)
+      raw = nil
+      Zip::ZipFile.open(path) do |zf|
+        zf.each do |ze|
+          next if ze.directory? || ze.symlink?
+          raw = ze.get_input_stream.read
+        end
+      end
+      self.encrypted_data = raw
+      return self.data
+    end
+
   end
 
 end
-

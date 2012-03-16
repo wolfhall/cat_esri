@@ -1,6 +1,6 @@
 module CatEsri
 
-  FORMATS = %w(sqlite3 csv)
+  FORMATS = %w(sqlite3 csv cloud)
 
   class Publisher
     include CatEsri
@@ -13,6 +13,11 @@ module CatEsri
       @xitems = options[:xitems]
       @format = options[:format]
       @logger = options[:logger]
+
+      @cloud_bucket_name = options[:cloud_bucket_name]
+      @cloud_encryption_key = options[:cloud_encryption_key]
+      @cloud_access_key_id = options[:cloud_access_key_id]
+      @cloud_secret_access_key = options[:cloud_secret_access_key]
     end
 
 
@@ -88,6 +93,82 @@ module CatEsri
               @logger.info "csv parsing error: #{e}" if @logger
             end
           end
+        end
+
+      when 'cloud'
+
+        @output.puts "Writing (temporarily) to: #{outfile}"
+        @logger.info "Writing (temporarily) to: #{outfile}" if @logger
+
+        CSV.open(outfile, "wb") do |csv|
+          csv << @vault[0].keys.to_a
+          @vault.each do |r|
+            begin
+              csv << r.values.to_a
+            rescue Exception => e
+              @output.puts "csv/cloud parsing error: #{e}"
+              @logger.error "csv/cloud parsing error: #{e}" if @logger
+            end
+          end
+        end
+
+        # compress and encrypt the original csv, creating a new zip in the same tempdir
+        crypt = Crypto.new(@cloud_encryption_key)
+        crypt.write_cryptozip_file(outfile)
+        zipfile = File.join(File.dirname(outfile), File.basename(outfile,'.*') + '.zip')
+
+        # send :data rather than :file to object.write since :file doesn't close the handle
+        f = File.open(zipfile)
+        data = f.read
+        f.close
+
+        AWS.config(
+          :access_key_id => @cloud_access_key_id,
+          :secret_access_key => @cloud_secret_access_key
+        )
+        s3 = AWS::S3.new
+
+        bucket = s3.buckets[@cloud_bucket_name]
+        unless bucket.exists?
+          @output.puts "Aborting copy, bucket not found: #{@cloud_bucket_name}"
+          @logger.error "Aborting copy, bucket not found: #{@cloud_bucket_name}" if @logger
+        end
+
+        obj_name = File.basename(zipfile)
+        object = bucket.objects[obj_name]
+
+        # sanity check to make sure the object is decryptable
+        # puts "+"*40
+        # crypt.encrypted_data = bucket.objects.first.read
+        # puts crypt.data
+        # puts "+"*40
+
+        5.times do
+          object.write(
+            :data => data,
+            :server_side_encryption => :aes256
+          )
+          if object.exists?
+            @output.puts "Success: (#{object.public_url}) Deleting temp files..."
+            @logger.info "Success: (#{object.public_url}) Deleting temp files..." if @logger
+            File.delete(outfile) if File.exists?(outfile)
+            File.delete(zipfile) if File.exists?(zipfile)
+            unless File.exists?(outfile) || File.exists?(zipfile)
+              @output.puts "Deleted: #{outfile} and #{zipfile}"
+              @logger.info "Deleted: #{outfile} and #{zipfile}" if @logger
+            end
+
+            break
+          end
+          sleep 2
+        end
+
+        if object.exists?
+          @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
+          @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
+        else
+          @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}|.zip"
+          @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}|.zip" if @logger
         end
 
       end
