@@ -182,40 +182,5 @@ module CatEsri
 
   end
 
-  #----------
-  # compress (zip) a single file's contents and encrypt it using the supplied encryption_key
-  # Note this does not support zipping directories and the file sizes should not exceed RAM comfort
-  class Crypto
-    attr_encrypted :data, :key => :my_key, :marshal => true
-
-    def initialize(key)
-      @key = key
-    end
-
-    def my_key
-      @key
-    end
-
-    def write_cryptozip_file(path)
-      self.data = File.read(path)
-      outpath = File.join(File.dirname(path), File.basename(path,'.*') + '.zip')
-      Zip::ZipFile.open(outpath, Zip::ZipFile::CREATE) do |zf|
-        zf.get_output_stream(File.basename(path)) { |f| f << self.encrypted_data }
-      end
-    end
-
-    def read_cryptozip_file(path)
-      raw = nil
-      Zip::ZipFile.open(path) do |zf|
-        zf.each do |ze|
-          next if ze.directory? || ze.symlink?
-          raw = ze.get_input_stream.read
-        end
-      end
-      self.encrypted_data = raw
-      return self.data
-    end
-
-  end
 
 end

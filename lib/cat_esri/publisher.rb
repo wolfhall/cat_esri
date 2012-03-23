@@ -15,7 +15,6 @@ module CatEsri
       @logger = options[:logger]
 
       @cloud_bucket_name = options[:cloud_bucket_name]
-      @cloud_encryption_key = options[:cloud_encryption_key]
       @cloud_access_key_id = options[:cloud_access_key_id]
       @cloud_secret_access_key = options[:cloud_secret_access_key]
     end
@@ -51,8 +50,7 @@ module CatEsri
 
 
     #----------
-    # List items to STDOUT (default, locations only) or write .csv or sqlite3 files. Assume
-    # everything went okay if outfile exists (removed expensive validation).
+    # Write .csv or sqlite3 files. Assume everything went okay if outfile exists.
     def publish(outfile,table_name)
 
       @output.puts "\nWriting #{@vault.size} #{@format} entries..."
@@ -112,16 +110,6 @@ module CatEsri
           end
         end
 
-        # compress and encrypt the original csv, creating a new zip in the same tempdir
-        crypt = Crypto.new(@cloud_encryption_key)
-        crypt.write_cryptozip_file(outfile)
-        zipfile = File.join(File.dirname(outfile), File.basename(outfile,'.*') + '.zip')
-
-        # send :data rather than :file to object.write since :file doesn't close the handle
-        f = File.open(zipfile)
-        data = f.read
-        f.close
-
         AWS.config(
           :access_key_id => @cloud_access_key_id,
           :secret_access_key => @cloud_secret_access_key
@@ -134,28 +122,21 @@ module CatEsri
           @logger.error "Aborting copy, bucket not found: #{@cloud_bucket_name}" if @logger
         end
 
-        obj_name = File.basename(zipfile)
-        object = bucket.objects[obj_name]
-
-        # sanity check to make sure the object is decryptable
-        # puts "+"*40
-        # crypt.encrypted_data = bucket.objects.first.read
-        # puts crypt.data
-        # puts "+"*40
+        deflated = Zlib::Deflate.deflate(File.read(outfile), Zlib::BEST_COMPRESSION)
+        object = bucket.objects[File.basename(outfile,'.*') + '.gz']
 
         5.times do
           object.write(
-            :data => data,
+            :data => deflated,
             :server_side_encryption => :aes256
           )
           if object.exists?
-            @output.puts "Success: (#{object.public_url}) Deleting temp files..."
-            @logger.info "Success: (#{object.public_url}) Deleting temp files..." if @logger
+            @output.puts "Success: (#{object.public_url}) Deleting temp file..."
+            @logger.info "Success: (#{object.public_url}) Deleting temp file..." if @logger
             File.delete(outfile) if File.exists?(outfile)
-            File.delete(zipfile) if File.exists?(zipfile)
-            unless File.exists?(outfile) || File.exists?(zipfile)
-              @output.puts "Deleted: #{outfile} and #{zipfile}"
-              @logger.info "Deleted: #{outfile} and #{zipfile}" if @logger
+            unless File.exists?(outfile)
+              @output.puts "Deleted: #{outfile}"
+              @logger.info "Deleted: #{outfile}" if @logger
             end
 
             break
@@ -164,6 +145,14 @@ module CatEsri
         end
 
         if object.exists?
+	  ###############################################
+	  # puts "-"*50
+	  # s3_deflated = object.read
+	  # inflated = Zlib::Inflate.inflate(s3_deflated)
+	  # puts inflated
+	  # puts "-"*50
+	  # sleep 5
+	  ###############################################
           @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
           @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
         else
@@ -173,10 +162,8 @@ module CatEsri
 
       end
 
-      unless @format == 'list'
-        @output.puts "Wrote #{@vault.size} entries.\n\n" if File.exists?(outfile)
-        @logger.info "Wrote #{@vault.size} entries." if File.exists?(outfile) && @logger
-      end
+      @output.puts "Wrote #{@vault.size} entries.\n\n" if File.exists?(outfile)
+      @logger.info "Wrote #{@vault.size} entries." if File.exists?(outfile) && @logger
       @vault.clear
 
     end

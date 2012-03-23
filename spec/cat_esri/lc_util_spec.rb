@@ -39,36 +39,5 @@ module CatEsri
 
   end
 
-  describe "Crypto" do
-    before{
-      @file = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data/bogus.txt"
-      @zipfile = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data/bogus.zip"
-      @cryptokey = "fake_key"
-      @crypt = Crypto.new(@cryptokey)
-      @crypt.write_cryptozip_file(@file)
-    }
-
-    it "should zip and encrypt a file" do
-      File.exists?(@zipfile).should be true
-      @crypt.data.should match(/^bogus/)
-      @crypt.encrypted_data.length.should > 0
-    end
-
-    it "should decrypt a zipped file" do
-      @crypt.read_cryptozip_file(@zipfile)
-      @crypt.data.should match(/^bogus/)
-    end
-
-    # not releasing filehandle in time. just leave it.
-    #after{
-    #  File.delete(@zipfile) if File.exists?(@zipfile)
-    #}
-
-  end
-
-
-
-
-
 
 end
