@@ -80,9 +80,7 @@ module CatEsri
   # Basically like checksum, but accepts a string and doesn't worry about size.
   # Slashes are normalized to prevent unix/windows/ruby slash weirdness.
   def guidify(s)
-    inc_digest = Digest::MD5.new
-    inc_digest << s.downcase.gsub('/','').gsub('\\','')
-    return inc_digest.hexdigest
+    Digest::SHA1.hexdigest(s.downcase.gsub('/','').gsub('\\',''))
   end
 
 
@@ -122,6 +120,7 @@ module CatEsri
     h.each_pair {|k,v| h[k] = v.to_s.gsub('\'','').gsub('\`','').gsub(',','').gsub('\"','').gsub('|','').strip }
   end
 
+
   #----------
   # use consistent slashes depending on OS
   def normal_seps(s)
@@ -130,6 +129,44 @@ module CatEsri
     return s.gsub('/',sep).gsub('\\',sep)
   end
 
+
+  #----------
+  # Decrypts a yaml cloud config options file and returns hash
+  def decrypted_ini(key, path)
+    decipher = OpenSSL::Cipher::AES.new(256, :CBC)
+    decipher.decrypt
+    decipher.key = key
+    decipher.iv = Digest::SHA1.hexdigest(key)
+    crypted_ini = File.read(path)
+    yaml_ini = decipher.update(crypted_ini) + decipher.final
+    return YAML.load(yaml_ini)
+  end
+
+
+  #----------
+  # Compress and encrypt a file (csv crawler output) and return data/string to be written to S3
+  def deflate_encrypt(key, path)
+    deflated = Zlib::Deflate.deflate(File.read(path), Zlib::BEST_COMPRESSION)
+    cipher = OpenSSL::Cipher::AES.new(256, :CBC)
+    cipher.encrypt
+    cipher.key = key
+    cipher.iv = Digest::SHA1.hexdigest(key)
+    encrypted_deflated = cipher.update(deflated) + cipher.final
+    return encrypted_deflated
+  end
+
+  
+  #----------
+  # Decompress and decrypt data/string from S3
+  def inflate_decrypt(key, data)
+    decipher_s3 = OpenSSL::Cipher::AES.new(256, :CBC)
+    decipher_s3.decrypt
+    decipher_s3.key = key
+    decipher_s3.iv = Digest::SHA1.hexdigest(key)
+    decrypted_deflated = decipher_s3.update(data) + decipher_s3.final
+    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
+    return decrypted_inflated
+  end
 
 
   #----------

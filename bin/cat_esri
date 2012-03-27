@@ -56,9 +56,8 @@ EOS
   opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
   opt :label, "Name used as label for this crawl", :short => 'n', :type => String
   opt :quell, "Exclude crawl subdirectories", :type => String
-  opt :cloud_bucket_name, "Amazon S3 bucket name", :type => String, :short => 'B'
-  opt :cloud_access_key_id, "Amazon S3 access key id", :type => String, :short => 'I'
-  opt :cloud_secret_access_key, "Amazon S3 secret access key", :type => String, :short => 'S'
+  opt :ini_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
+  opt :ini_path, "Cloud configuration file", :type => String, :short => 'I'
 end
 
 Trollop::die :path, "Cannot be blank" if opts[:path] == nil
@@ -70,9 +69,8 @@ opts[:logfile] = File.expand_path(opts[:logfile]) if opts[:logfile]
 opts[:outfile] = File.expand_path(opts[:outfile]) if opts[:outfile]
 
 if opts[:outdir] == nil
-  Trollop::die :cloud_bucket_name, "Amazon S3 bucket name must exist" if opts[:cloud_bucket_name] == nil
-  Trollop::die :cloud_access_key_id, "Amazon S3 access key id must exist" if opts[:cloud_access_key_id] == nil
-  Trollop::die :cloud_secret_access_key, "Amazon S3 secret access key must exist" if opts[:cloud_secret_access_key] == nil
+  Trollop::die :ini_cipher, "Encryption/decryption cipher key must exist" if opts[:ini_cipher] == nil
+  Trollop::die :ini_path, "Amazon S3 bucket name must exist" if opts[:ini_path] == nil
   opts[:format] = 'cloud'
   require 'tmpdir'
   opts[:outdir] = Dir.tmpdir

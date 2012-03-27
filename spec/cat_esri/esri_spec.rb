@@ -209,7 +209,7 @@ module CatEsri
       end
 
       it "get_multi_shp_checksum should return a composite checksum from all shp files" do
-        crawler.get_multi_shp_checksum(@shp).should == '06ce3c5e7b03e736ee81ebd37cd932b4'
+        crawler.get_multi_shp_checksum(@shp).should == 'b0c1a3bb92a255d5e57d8411022e697175c4f87f'
       end
 
       it "get_multi_shp_bytes should return sum from all shp files" do
@@ -218,7 +218,7 @@ module CatEsri
 
       it "get_fgdb_checksum should return composite checksum from fgdb" do
         fgdb = File.join(@testdata,'mygdb.gdb')
-        crawler.get_fgdb_checksum(fgdb).should == '95be2b113a56481a2b55959c1fc9a5b6'
+        crawler.get_fgdb_checksum(fgdb).should == '59d0ba4e5ba58159e054756c12d619ac0ce37dd1'
       end
 
     end

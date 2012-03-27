@@ -14,9 +14,8 @@ module CatEsri
       @format = options[:format]
       @logger = options[:logger]
 
-      @cloud_bucket_name = options[:cloud_bucket_name]
-      @cloud_access_key_id = options[:cloud_access_key_id]
-      @cloud_secret_access_key = options[:cloud_secret_access_key]
+      @ini_cipher = options[:ini_cipher]
+      @ini_path = options[:ini_path]
     end
 
 
@@ -95,6 +94,14 @@ module CatEsri
 
       when 'cloud'
 
+        unless File.exists?(@ini_path)
+          @output.puts "Aborting copy, cloud config ini not found: #{@ini_path}"
+          @logger.error "Aborting copy, cloud config ini not found: #{@ini_path}" if @logger
+          return
+        end
+
+        ini = decrypted_ini(@ini_cipher, @ini_path)
+
         @output.puts "Writing (temporarily) to: #{outfile}"
         @logger.info "Writing (temporarily) to: #{outfile}" if @logger
 
@@ -110,24 +117,26 @@ module CatEsri
           end
         end
 
+        encrypted_deflated_csv = deflate_encrypt(ini['client_cipher'], outfile)
+
         AWS.config(
-          :access_key_id => @cloud_access_key_id,
-          :secret_access_key => @cloud_secret_access_key
+          :access_key_id => ini['access_key_id'],
+          :secret_access_key => ini['secret_access_key']
         )
         s3 = AWS::S3.new
 
-        bucket = s3.buckets[@cloud_bucket_name]
+        bucket = s3.buckets[ini['bucket_name']]
         unless bucket.exists?
-          @output.puts "Aborting copy, bucket not found: #{@cloud_bucket_name}"
-          @logger.error "Aborting copy, bucket not found: #{@cloud_bucket_name}" if @logger
+          @output.puts "Aborting copy, bucket not found: #{ini['bucket_name']}"
+          @logger.error "Aborting copy, bucket not found: #{ini['bucket_name']}" if @logger
+          return
         end
 
-        deflated = Zlib::Deflate.deflate(File.read(outfile), Zlib::BEST_COMPRESSION)
         object = bucket.objects[File.basename(outfile,'.*') + '.gz']
 
         5.times do
           object.write(
-            :data => deflated,
+            :data => encrypted_deflated_csv,
             :server_side_encryption => :aes256
           )
           if object.exists?
@@ -147,11 +156,9 @@ module CatEsri
         if object.exists?
 	  ###############################################
 	  # puts "-"*50
-	  # s3_deflated = object.read
-	  # inflated = Zlib::Inflate.inflate(s3_deflated)
-	  # puts inflated
+	  # raw = object.read
+	  # puts inflate_decrypt(ini['client_cipher'],raw )
 	  # puts "-"*50
-	  # sleep 5
 	  ###############################################
           @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
           @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
@@ -167,10 +174,7 @@ module CatEsri
       @vault.clear
 
     end
-
-
-
-
+    
 
   end
 

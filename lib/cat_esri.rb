@@ -8,6 +8,7 @@ require "csv"
 require "digest/md5"
 require "socket"
 require "yaml"
+require "openssl"
 require "aws-sdk"
 require "geo_ruby"
 include GeoRuby::SimpleFeatures
