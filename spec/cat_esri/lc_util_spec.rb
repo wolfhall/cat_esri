@@ -32,6 +32,12 @@ module CatEsri
       crawler.guidify("da mittie").should == "916b09676ec55bde55d5416a2e8d15f48d8fc140"
     end
 
+    it "guidify should produce a hexdigest normalized for slashes" do
+      a = "c:\\fake_path"
+      b = "c:/fake_path"
+      crawler.guidify(a).should == crawler.guidify(b)
+    end
+
     it "get_uniq_cloud should return a unique, non-numeric (except for uwi) string" do
       a = %w{ aaa <xml/> bbb a 1234567890 ccc RRR z12433`3`2"_)(*&^%$#@!""  FOO!!! }
       crawler.get_uniq_cloud(a).should == 'aaa xml bbb 1234567890 ccc RRR FOO'
