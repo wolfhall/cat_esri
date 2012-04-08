@@ -16,6 +16,7 @@ module CatEsri
 
       @ini_cipher = options[:ini_cipher]
       @ini_path = options[:ini_path]
+      @keep_tmps = options[:keep_tmps]
     end
 
 
@@ -100,7 +101,7 @@ module CatEsri
           return
         end
 
-        ini = decrypted_ini(@ini_cipher, @ini_path)
+        ini = decrypted_inflated_ini(@ini_cipher, @ini_path)
 
         @output.puts "Writing (temporarily) to: #{outfile}"
         @logger.info "Writing (temporarily) to: #{outfile}" if @logger
@@ -117,7 +118,7 @@ module CatEsri
           end
         end
 
-        encrypted_deflated_csv = deflate_encrypt(ini['client_cipher'], outfile)
+        encrypted_deflated_csv = deflate_encrypt(ini['cipher_key'], outfile)
 
         AWS.config(
           :access_key_id => ini['access_key_id'],
@@ -140,26 +141,25 @@ module CatEsri
             :server_side_encryption => :aes256
           )
           if object.exists?
-            @output.puts "Success: (#{object.public_url}) Deleting temp file..."
-            @logger.info "Success: (#{object.public_url}) Deleting temp file..." if @logger
-            File.delete(outfile) if File.exists?(outfile)
-            unless File.exists?(outfile)
-              @output.puts "Deleted: #{outfile}"
-              @logger.info "Deleted: #{outfile}" if @logger
-            end
+            @output.puts "Success: (#{object.public_url})"
+            @logger.info "Success: (#{object.public_url})" if @logger
 
+            if @keep_tmps
+              @output.puts "Kept cloud file: #{outfile}"
+              @logger.info "Kept cloud file: #{outfile}" if @logger
+            else
+              File.delete(outfile) if File.exists?(outfile)
+              unless File.exists?(outfile)
+                @output.puts "Deleted cloud file: #{outfile}"
+                @logger.info "Deleted cloud file: #{outfile}" if @logger
+              end
+            end
             break
           end
           sleep 2
         end
 
         if object.exists?
-	  ###############################################
-	  # puts "-"*50
-	  # raw = object.read
-	  # puts inflate_decrypt(ini['client_cipher'],raw )
-	  # puts "-"*50
-	  ###############################################
           @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
           @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
         else
@@ -174,7 +174,7 @@ module CatEsri
       @vault.clear
 
     end
-    
+
 
   end
 

@@ -131,15 +131,16 @@ module CatEsri
 
 
   #----------
-  # Decrypts a yaml cloud config options file and returns hash
-  def decrypted_ini(key, path)
+  # Decrypts a compressed yaml cloud config options file and returns hash
+  def decrypted_inflated_ini(key, path)
     decipher = OpenSSL::Cipher::AES.new(256, :CBC)
     decipher.decrypt
     decipher.key = key
     decipher.iv = Digest::SHA1.hexdigest(key)
     crypted_ini = File.read(path)
-    yaml_ini = decipher.update(crypted_ini) + decipher.final
-    return YAML.load(yaml_ini)
+    decrypted_deflated = decipher.update(crypted_ini) + decipher.final
+    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
+    return YAML.load(decrypted_inflated)
   end
 
 
@@ -155,7 +156,7 @@ module CatEsri
     return encrypted_deflated
   end
 
-  
+
   #----------
   # Decompress and decrypt data/string from S3
   def inflate_decrypt(key, data)

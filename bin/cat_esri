@@ -58,6 +58,8 @@ EOS
   opt :quell, "Exclude crawl subdirectories", :type => String
   opt :ini_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
   opt :ini_path, "Cloud configuration file", :type => String, :short => 'I'
+  opt :keep_tmps, "Keep cloud data files after upload", :default => false, :short => 'K'
+  
 end
 
 Trollop::die :path, "Cannot be blank" if opts[:path] == nil
