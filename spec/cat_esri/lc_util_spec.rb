@@ -43,21 +43,6 @@ module CatEsri
       crawler.get_uniq_cloud(a).should == 'aaa xml bbb 1234567890 ccc RRR FOO'
     end
 
-    it "deflate_encrypt and inflate_decrypt should hopefully work" do
-      plain = File.join(@testdata, "plain.tmp")
-      squish = File.join(@testdata, "squish.tmp")
-
-      key = Digest::SHA1.hexdigest(ENV["PATH"])
-      File.open(plain,'w'){|f| f << "I'm a SUPER cereal secret!"}
-      xxx = crawler.deflate_encrypt(key, plain)
-      File.open(squish,'w'){|f| f << xxx}
-      crawler.inflate_decrypt(key,File.read(squish)).should == "I'm a SUPER cereal secret!"
-
-      File.delete(plain) if File.exists?(plain)
-      File.delete(squish) if File.exists?(squish)
-    end
-
-
   end
 
 

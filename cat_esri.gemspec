@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "sqlite3"
   s.add_runtime_dependency "GeoRuby"
   s.add_runtime_dependency "dbf"
+  s.add_runtime_dependency "indextank"
 end

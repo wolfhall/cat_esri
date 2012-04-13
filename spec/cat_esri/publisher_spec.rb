@@ -80,7 +80,11 @@ module CatEsri
         File.open(get_tmps('csv')[0]) {|f| f.readline}.should =~ /,+/
       end
 
-      it "should write compressed encrypted file to Amazon S3" do
+      it "should write to a searchify index" do
+        pending "one of these days"
+      end
+
+      it "should write to an elasticsearch index" do
         pending "one of these days"
       end
 

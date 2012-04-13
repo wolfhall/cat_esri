@@ -93,88 +93,53 @@ module CatEsri
           end
         end
 
-      when 'cloud'
+      when 'search_index'
 
         unless File.exists?(@ini_path)
-          @output.puts "Aborting copy, cloud config ini not found: #{@ini_path}"
-          @logger.error "Aborting copy, cloud config ini not found: #{@ini_path}" if @logger
+          @output.puts "Aborting upload, storage ini not found: #{@ini_path}"
+          @logger.error "Aborting upload, storage ini not found: #{@ini_path}" if @logger
           return
         end
 
         ini = decrypted_inflated_ini(@ini_cipher, @ini_path)
 
-        @output.puts "Writing (temporarily) to: #{outfile}"
-        @logger.info "Writing (temporarily) to: #{outfile}" if @logger
+        if ini['local_index'].nil?
 
-        CSV.open(outfile, "wb") do |csv|
-          csv << @vault[0].keys.to_a
-          @vault.each do |r|
-            begin
-              csv << r.values.to_a
-            rescue Exception => e
-              @output.puts "csv/cloud parsing error: #{e}"
-              @logger.error "csv/cloud parsing error: #{e}" if @logger
+          searchify_url = ini['searchify_url']
+          searchify_idx = ini['searchify_idx']
+
+          api = IndexTank::Client.new searchify_url
+          idx = api.indexes searchify_idx
+
+          documents = []
+          @vault.each do |fields|
+            guid = fields[:guid]
+            fields.tap { |h| h.delete(:guid) }
+            documents << {:docid => guid, :fields => fields }
+          end
+
+          @output.puts "Batch inserting Searchify documents...\n\n"
+          @logger.info "Batch inserting Searchify documents..." if @logger
+          response = idx.batch_insert(documents)
+
+          response.each_with_index do |r, i|
+            unless r['added']
+              @output.puts "Searchify upload error: #{r}"
+              @logger.error "Searchify upload error: #{r}" if @logger
             end
           end
-        end
 
-        encrypted_deflated_csv = deflate_encrypt(ini['cipher_key'], outfile)
-
-        AWS.config(
-          :access_key_id => ini['access_key_id'],
-          :secret_access_key => ini['secret_access_key']
-        )
-        s3 = AWS::S3.new
-
-        bucket = s3.buckets[ini['bucket_name']]
-        unless bucket.exists?
-          @output.puts "Aborting copy, bucket not found: #{ini['bucket_name']}"
-          @logger.error "Aborting copy, bucket not found: #{ini['bucket_name']}" if @logger
-          return
-        end
-
-        object = bucket.objects[File.basename(outfile,'.*') + '.gz']
-
-        5.times do
-          object.write(
-            :data => encrypted_deflated_csv,
-            :server_side_encryption => :aes256
-          )
-          if object.exists?
-            @output.puts "Success: (#{object.public_url})"
-            @logger.info "Success: (#{object.public_url})" if @logger
-
-            if @keep_tmps
-              @output.puts "Kept cloud file: #{outfile}"
-              @logger.info "Kept cloud file: #{outfile}" if @logger
-            else
-              File.delete(outfile) if File.exists?(outfile)
-              unless File.exists?(outfile)
-                @output.puts "Deleted cloud file: #{outfile}"
-                @logger.info "Deleted cloud file: #{outfile}" if @logger
-              end
-            end
-            break
-          end
-          sleep 2
-        end
-
-        if object.exists?
-          @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
-          @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
         else
-          @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}|.zip"
-          @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}|.zip" if @logger
+          # will use local elasticsearch
         end
 
       end
 
-      @output.puts "Wrote #{@vault.size} entries.\n\n" if File.exists?(outfile)
-      @logger.info "Wrote #{@vault.size} entries." if File.exists?(outfile) && @logger
+      @output.puts "Wrote #{@vault.size} entries.\n\n"
+      @logger.info "Wrote #{@vault.size} entries." if @logger
       @vault.clear
 
     end
-
 
   end
 

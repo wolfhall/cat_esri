@@ -11,6 +11,7 @@ require "yaml"
 require "openssl"
 require "aws-sdk"
 require "geo_ruby"
+require "indextank"
 include GeoRuby::SimpleFeatures
 include GeoRuby::Shp4r
 

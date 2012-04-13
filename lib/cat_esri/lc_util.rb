@@ -145,32 +145,6 @@ module CatEsri
 
 
   #----------
-  # Compress and encrypt a file (csv crawler output) and return data/string to be written to S3
-  def deflate_encrypt(key, path)
-    deflated = Zlib::Deflate.deflate(File.read(path), Zlib::BEST_COMPRESSION)
-    cipher = OpenSSL::Cipher::AES.new(256, :CBC)
-    cipher.encrypt
-    cipher.key = key
-    cipher.iv = Digest::SHA1.hexdigest(key)
-    encrypted_deflated = cipher.update(deflated) + cipher.final
-    return encrypted_deflated
-  end
-
-
-  #----------
-  # Decompress and decrypt data/string from S3
-  def inflate_decrypt(key, data)
-    decipher_s3 = OpenSSL::Cipher::AES.new(256, :CBC)
-    decipher_s3.decrypt
-    decipher_s3.key = key
-    decipher_s3.iv = Digest::SHA1.hexdigest(key)
-    decrypted_deflated = decipher_s3.update(data) + decipher_s3.final
-    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
-    return decrypted_inflated
-  end
-
-
-  #----------
   # convenience class for dealing with MS Access via ADO on Windows
   # http://rubyonwindows.blogspot.com/2007/06/using-ruby-ado-to-work-with-ms-access.html
   class AccessDb
