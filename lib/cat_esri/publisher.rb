@@ -1,6 +1,6 @@
 module CatEsri
 
-  FORMATS = %w(sqlite3 csv cloud)
+  FORMATS = %w(sqlite3 csv search_index)
 
   class Publisher
     include CatEsri
@@ -46,7 +46,6 @@ module CatEsri
       stamp = sprintf('%.6f',"#{Time.now.to_i}.#{Time.now.usec}".to_f).gsub('.','')
       File.join(@outdir,"#{type.upcase}_#{stamp}.#{@format.downcase}")
     end
-
 
 
     #----------
