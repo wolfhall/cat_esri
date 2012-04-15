@@ -92,10 +92,11 @@ module CatEsri
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,
-        :guid => guidify(path.downcase+cs),
         :model => 'map',
         :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
       }
+
+      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
 
       @pub.add_map scrub_values(h)
 
@@ -168,10 +169,11 @@ module CatEsri
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,
-        :guid => guidify(path.downcase+cs),
         :model => 'map',
         :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
       }
+
+      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
 
       @pub.add_map scrub_values(h)
 
@@ -264,10 +266,11 @@ module CatEsri
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,
-        :guid => guidify(path.downcase+cs),
         :model => 'map',
         :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
       }
+
+      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
 
       @pub.add_map scrub_values(h)
 
