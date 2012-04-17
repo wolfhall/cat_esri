@@ -102,6 +102,8 @@ module CatEsri
 
         ini = decrypted_inflated_ini(@ini_cipher, @ini_path)
 
+        #ini['local_index'] = 'logicalcat_index'
+
         if ini['local_index'].nil?
 
           searchify_url = ini['searchify_url']
@@ -129,7 +131,27 @@ module CatEsri
           end
 
         else
-          # will use local elasticsearch
+
+          idx = ini['local_index']
+
+          documents = []
+          @vault.each do |fields|
+            guid = fields[:guid]
+            fields.tap { |h| h.delete(:guid) }
+            documents << fields.merge({:id => guid})
+          end
+
+          @output.puts "Batch inserting ElasticSearch documents...\n\n"
+          @logger.info "Batch inserting ElasticSearch documents..." if @logger
+          begin
+            Tire.index idx do
+              import documents
+              refresh
+            end
+          rescue Exception => e
+            @output.puts "ElasticSearch upload error: #{e}"
+            @logger.error "ElasticSearch upload error: #{e}" if @logger
+          end
         end
 
       end

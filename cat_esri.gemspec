@@ -25,4 +25,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "GeoRuby"
   s.add_runtime_dependency "dbf"
   s.add_runtime_dependency "indextank"
+  s.add_runtime_dependency "tire"
 end

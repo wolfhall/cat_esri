@@ -12,6 +12,7 @@ require "openssl"
 require "aws-sdk"
 require "geo_ruby"
 require "indextank"
+require "tire"
 include GeoRuby::SimpleFeatures
 include GeoRuby::Shp4r
 
