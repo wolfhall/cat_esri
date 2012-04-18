@@ -137,7 +137,7 @@ module CatEsri
     decipher.decrypt
     decipher.key = key
     decipher.iv = Digest::SHA1.hexdigest(key)
-    crypted_ini = File.read(path)
+    crypted_ini = File.binread(path)
     decrypted_deflated = decipher.update(crypted_ini) + decipher.final
     decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
     return YAML.load(decrypted_inflated)
