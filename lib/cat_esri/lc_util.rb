@@ -116,8 +116,22 @@ module CatEsri
   # Paranoid removal of scary characters and stringification of hash keys for
   # easier digestion into sqlite and csv formats.
   def scrub_values(h)
-    h.each_pair { |k,v| h[k] = v.to_s.encode("UTF-8", undef: :replace, replace: "?") unless v.nil?}
-    h.each_pair {|k,v| h[k] = v.to_s.gsub('\'','').gsub('\`','').gsub(',','').gsub('\"','').gsub('|','').strip }
+    h.each_pair do |k,v|
+      next if v.nil?
+      new_v = v.to_s
+      begin
+        # try UTF-8 first, then Windows
+        cleaned = new_v.dup.force_encoding('UTF-8')
+        cleaned = new_v.encode( 'UTF-8', 'Windows-1252' ) unless cleaned.valid_encoding?
+        new_v = cleaned
+      rescue EncodingError
+        # ...you had your chance, string!
+        new_v.encode!( 'UTF-8', invalid: :replace, undef: :replace )
+      end
+      h[k] = new_v
+    end
+    # now replace some particularly evil chars
+    h.each_pair{ |k,v| h[k] = v.to_s.gsub('\'','').gsub('\`','').gsub(',','').gsub('\"','').gsub('|','').strip }
   end
 
 
