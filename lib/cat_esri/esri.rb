@@ -14,16 +14,18 @@ module CatEsri
       begin
         Dir.foreach(f) do |d|
           #exclude shapefile components in Discovery layers to avoid double-scanning
-          if /\.shp$/.match(d.downcase)
+          if /\.shp$/.match(d.downcase) && File.file?(File.join(f,d))
             next if File.exist?(f+"/Layer.gly") unless @options[:ggxlayer]
             parse_shp(File.join(f,d))
           end
 
-          if /\.gdb$/.match(d.downcase) #matches File GeoDatabase directories
+          #matches File GeoDatabase directories
+          if /\.gdb$/.match(d.downcase) && File.directory?(File.join(f,d))
             parse_fgdb(File.join(f,d)) if is_esri_fgdb?(File.join(f,d)) && @options[:esrigdb]
           end
 
-          if /\.mdb$/.match(d.downcase) #matches Personal GeoDatabase files
+          #matches Personal GeoDatabase files
+          if /\.mdb$/.match(d.downcase)  && File.file?(File.join(f,d))
             if @os != "mingw32"
               @output.puts "Sorry, ESRI Personal Geodatabase scan only works on Windows."
               @logger.warn "Sorry, ESRI Personal Geodatabase scan only works on Windows." if @logger
@@ -78,7 +80,7 @@ module CatEsri
       h = {
         :store => 'shapefile',
         :label => @options[:label],
-        :name => File.basename(path.gsub('\\','/').downcase, '.shp'),
+        :identifier => File.basename(path.gsub('\\','/').downcase, '.shp'),
         :location => normal_seps(path),
         :project => 'nonproj',
         :checksum => cs,
@@ -155,7 +157,7 @@ module CatEsri
       h = {
   	:store => 'esri_pgdb',
   	:label => @options[:label],
-  	:name => File.basename(path.gsub('\\','/')),
+  	:identifier => File.basename(path.gsub('\\','/')),
   	:location => normal_seps(path),
   	:project => 'nonproj',
   	:checksum => cs,
@@ -252,7 +254,7 @@ module CatEsri
       h = {
         :store => 'esri_fgdb',
         :label => @options[:label],
-        :name => File.basename(path.gsub('\\','/')),
+        :identifier => File.basename(path.gsub('\\','/')),
         :location => normal_seps(path),
         :project => 'nonproj',
         :checksum => cs,

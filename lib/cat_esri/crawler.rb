@@ -1,12 +1,12 @@
 module CatEsri
-  
+
   #----------
   # Collect metadata from ESRI shapefiles, personal geodatabases (via MS Access) and
   # file geodatabases (via hack). See bin/cat-esri for command line options.
   # See www.esri.com and www.opengeospatial.org for geo standards info
   class Crawler
     include CatEsri
-    
+
     attr_accessor :os, :options
 
     #----------
@@ -23,17 +23,17 @@ module CatEsri
       @options[:output] = @output
       @options[:logger] = @logger
       @pub = Publisher.new(@options)
-      
+
       @logger.info "="*60 if @logger
       @logger.info "os: #{@os}  user: #{Etc.getlogin}" if @logger
       @logger.info "options: #{@options.inspect}" if @logger
       @logger.info "="*60 if @logger
-      
+
       @output.puts '----- LogicalCat ESRI Crawler -----'
       @logger.info '----- LogicalCat ESRI Crawler -----' if @logger
-      
+
       begin
-      
+
         if File.file?(@options[:path]) && File.extname(@options[:path]).downcase == ".shp"
           parse_shp(@options[:path])
         elsif File.file?(@options[:path]) && File.extname(@options[:path]).downcase == ".mdb"
@@ -53,9 +53,9 @@ module CatEsri
           @output.puts "Invalid crawler path: #{@options[:path]}"
           @logger.warn "Invalid crawler path: #{@options[:path]}" if @logger
         end
-      
+
         @pub.wrap_it_up
-      
+
       rescue Exception => e
         @output.puts "ERROR: #{e.message}"
         @output.puts e.backtrace.inspect
@@ -64,9 +64,9 @@ module CatEsri
       ensure
         @logger.close if @logger
       end
-      
+
     end
 
   end
-  
+
 end

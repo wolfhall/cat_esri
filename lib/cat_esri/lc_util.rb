@@ -116,6 +116,7 @@ module CatEsri
   # Paranoid removal of scary characters and stringification of hash keys for
   # easier digestion into sqlite and csv formats.
   def scrub_values(h)
+    new_v = ""
     h.each_pair do |k,v|
       next if v.nil?
       new_v = v.to_s
@@ -130,8 +131,16 @@ module CatEsri
       end
       h[k] = new_v
     end
-    # now replace some particularly evil chars
-    h.each_pair{ |k,v| h[k] = v.to_s.gsub('\'','').gsub('\`','').gsub(',','').gsub('\"','').gsub('|','').strip }
+    h.each_pair{ |k,v| h[k] = rm_evil(v) }
+  end
+
+  #----------
+  # companion of scrub_values. remove some scary characters relevant to csv/index formats
+  def rm_evil(s)
+    return if s.nil?
+    evil = %w( ' ` , " | : )
+    evil.each{|x| s.gsub!(x,"_")}
+    return s
   end
 
 

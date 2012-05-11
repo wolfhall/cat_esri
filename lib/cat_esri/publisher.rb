@@ -114,9 +114,7 @@ module CatEsri
 
           documents = []
           @vault.each do |fields|
-            guid = fields[:guid]
-            fields.tap { |h| h.delete(:guid) }
-            documents << {:docid => guid, :fields => fields }
+            documents << {:docid => fields[:guid], :fields => fields }
           end
 
           @output.puts "Batch inserting Searchify documents...\n\n"
@@ -136,9 +134,7 @@ module CatEsri
 
           documents = []
           @vault.each do |fields|
-            guid = fields[:guid]
-            fields.tap { |h| h.delete(:guid) }
-            documents << fields.merge({:id => guid})
+            documents << fields.merge({:id => fields[:guid]})
           end
 
           @output.puts "Batch inserting ElasticSearch documents...\n\n"
