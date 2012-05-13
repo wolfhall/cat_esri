@@ -137,7 +137,7 @@ module CatEsri
   #----------
   # companion of scrub_values. remove some scary characters relevant to csv/index formats
   def rm_evil(s)
-    return if s.nil?
+    return "" if s.nil?
     evil = %w( ' ` , " | )
     evil.each{|x| s.gsub!(x,"_")}
     return s
