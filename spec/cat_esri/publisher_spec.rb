@@ -80,12 +80,23 @@ module CatEsri
         File.open(get_tmps('csv')[0]) {|f| f.readline}.should =~ /,+/
       end
 
-      it "should write to a searchify index" do
-        pending "one of these days"
-      end
-
       it "should write to an elasticsearch index" do
-        pending "one of these days"
+
+        #assumes you have elasticsearch running locally
+        crawler.options[:format] = 'elasticsearch'
+        crawler.options[:elastic_url] = 'http://localhost:9200/test'
+        Tire.index('test'){ create }
+        crawler.scan
+
+        s = Tire.search('test') do
+          query { string "runways" }
+          highlight "cloud"
+        end
+
+        s.results.size.should == 1
+        s.results.first.highlight[:cloud].join.should =~ /<em>RUNWAYS/
+
+        Tire.index('test'){ delete }
       end
 
 

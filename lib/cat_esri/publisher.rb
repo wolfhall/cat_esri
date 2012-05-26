@@ -1,6 +1,6 @@
 module CatEsri
 
-  FORMATS = %w(sqlite3 csv search_index)
+  FORMATS = %w(sqlite3 csv cloud elasticsearch)
 
   class Publisher
     include CatEsri
@@ -13,10 +13,11 @@ module CatEsri
       @xitems = options[:xitems]
       @format = options[:format]
       @logger = options[:logger]
+      @skip_upload = options[:skip_upload]
+      @elastic_url = options[:elastic_url]
 
-      @ini_cipher = options[:ini_cipher]
-      @ini_path = options[:ini_path]
-      @keep_tmps = options[:keep_tmps]
+      @cfg_cipher = options[:cfg_cipher]
+      @cfg_path = options[:cfg_path]
     end
 
 
@@ -92,69 +93,119 @@ module CatEsri
           end
         end
 
-      when 'search_index'
+      when 'cloud'
 
-        unless File.exists?(@ini_path)
-          @output.puts "Aborting upload, storage ini not found: #{@ini_path}"
-          @logger.error "Aborting upload, storage ini not found: #{@ini_path}" if @logger
+        unless File.exists?(@cfg_path)
+          @output.puts "Aborting upload, storage config not found: #{@cfg_path}"
+          @logger.error "Aborting upload, storage config not found: #{@cfg_path}" if @logger
           return
         end
 
-        ini = decrypted_inflated_ini(@ini_cipher, @ini_path)
+        cfg = decrypted_inflated_cfg(@cfg_cipher, @cfg_path)
 
-        #ini['local_index'] = 'logicalcat_index'
+        @output.puts "Writing to: #{outfile}"
+        @logger.info "Writing to: #{outfile}" if @logger
 
-        if ini['local_index'].nil?
-
-          searchify_url = ini['searchify_url']
-          searchify_idx = ini['searchify_idx']
-
-          api = IndexTank::Client.new searchify_url
-          idx = api.indexes searchify_idx
-
-          documents = []
-          @vault.each do |fields|
-            documents << {:docid => fields[:guid], :fields => fields }
-          end
-
-          @output.puts "Batch inserting Searchify documents...\n\n"
-          @logger.info "Batch inserting Searchify documents..." if @logger
-          response = idx.batch_insert(documents)
-
-          response.each_with_index do |r, i|
-            unless r['added']
-              @output.puts "Searchify upload error: #{r}"
-              @logger.error "Searchify upload error: #{r}" if @logger
+        CSV.open(outfile, "wb") do |csv|
+          csv << @vault[0].keys.to_a
+          @vault.each do |r|
+            begin
+              csv << r.values.to_a
+            rescue Exception => e
+              @output.puts "csv/cloud parsing error: #{e}"
+              @logger.error "csv/cloud parsing error: #{e}" if @logger
             end
+          end
+        end
+
+        encrypted_deflated_csv = deflate_encrypt(cfg['cipher_key'], outfile)
+
+        if @skip_upload
+
+          cryptout = File.join(File.dirname(outfile),File.basename(outfile,'cloud')+'crypt')
+
+          File.open(cryptout, 'w') do |f|
+            f.write(encrypted_deflated_csv)
           end
 
         else
 
-          idx = ini['local_index']
+          AWS.config(
+            :access_key_id => cfg['access_key'],
+            :secret_access_key => cfg['secret_key']
+          )
+          s3 = AWS::S3.new
 
-          documents = []
-          @vault.each do |fields|
-            documents << fields.merge({:id => fields[:guid]})
+          bucket = s3.buckets[cfg['s3_bucket']]
+          unless bucket.exists?
+            @output.puts "Aborting copy, bucket not found: #{cfg['s3_bucket']}"
+            @logger.error "Aborting copy, bucket not found: #{cfg['s3_bucket']}" if @logger
+            return
           end
 
-          @output.puts "Batch inserting ElasticSearch documents...\n\n"
-          @logger.info "Batch inserting ElasticSearch documents..." if @logger
-          begin
-            Tire.index idx do
-              import documents
-              refresh
+          object = bucket.objects[File.basename(outfile,'.*') + '.crypt']
+
+          5.times do
+
+            object.write(:data => encrypted_deflated_csv, :server_side_encryption => :aes256)
+
+            if object.exists?
+              File.delete(outfile) if File.exists?(outfile)
+              unless File.exists?(outfile)
+                @output.puts "Deleted temp file: #{outfile}"
+                @logger.info "Deleted temp file: #{outfile}" if @logger
+              end
+              break
             end
-          rescue Exception => e
-            @output.puts "ElasticSearch upload error: #{e}"
-            @logger.error "ElasticSearch upload error: #{e}" if @logger
+            sleep 2
           end
+
+          if object.exists?
+	    ###############################################
+	    # puts "-"*50
+	    # raw = object.read
+	    # puts inflate_decrypt(cfg['cipher_key'],raw )
+	    # puts "-"*50
+	    ###############################################
+            @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
+            @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
+          else
+            @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}"
+            @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}" if @logger
+          end
+
+        end
+
+      when 'elasticsearch'
+
+        es_url = File.dirname(@elastic_url)
+        es_idx = File.basename(@elastic_url)
+        Tire.configure{ url es_url }
+
+        docs = @vault.collect{ |h| h.merge!( {:type=>h[:model],:id=>h[:guid]} ) }
+
+        count = 0
+        begin
+          count += 1
+
+          Tire.index(es_idx) do
+            import docs
+            refresh
+          end
+
+        rescue Exception => e
+          @output.puts "ElasticSearch bulk import problem: trying again (#{count}).\n\n"
+          @logger.info "ElasticSearch bulk import problem: trying again (#{count})" if @logger
+          @logger.info e if @logger
+          retry if (count < 6)
         end
 
       end
 
-      @output.puts "Wrote #{@vault.size} entries.\n\n"
-      @logger.info "Wrote #{@vault.size} entries." if @logger
+      @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+      @logger.info "Wrote #{@vault.size} esri entries." if @logger
       @vault.clear
+
 
     end
 

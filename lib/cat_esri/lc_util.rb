@@ -155,15 +155,39 @@ module CatEsri
 
   #----------
   # Decrypts a compressed yaml cloud config options file and returns hash
-  def decrypted_inflated_ini(key, path)
+  def decrypted_inflated_cfg(key, path)
     decipher = OpenSSL::Cipher::AES.new(256, :CBC)
     decipher.decrypt
     decipher.key = key
     decipher.iv = Digest::SHA1.hexdigest(key)
-    crypted_ini = File.binread(path)
-    decrypted_deflated = decipher.update(crypted_ini) + decipher.final
+    crypted_cfg = File.binread(path)
+    decrypted_deflated = decipher.update(crypted_cfg) + decipher.final
     decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
     return YAML.load(decrypted_inflated)
+  end
+
+  #----------
+  # Compress and encrypt a file (csv crawler output) and return data/string to be written to S3
+  def deflate_encrypt(key, path)
+    deflated = Zlib::Deflate.deflate(File.read(path), Zlib::BEST_COMPRESSION)
+    cipher = OpenSSL::Cipher::AES.new(256, :CBC)
+    cipher.encrypt
+    cipher.key = key
+    cipher.iv = Digest::SHA1.hexdigest(key)
+    encrypted_deflated = cipher.update(deflated) + cipher.final
+    return encrypted_deflated
+  end
+
+  #----------
+  # Decompress and decrypt data/string from S3
+  def inflate_decrypt(key, data)
+    decipher_s3 = OpenSSL::Cipher::AES.new(256, :CBC)
+    decipher_s3.decrypt
+    decipher_s3.key = key
+    decipher_s3.iv = Digest::SHA1.hexdigest(key)
+    decrypted_deflated = decipher_s3.update(data) + decipher_s3.final
+    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
+    return decrypted_inflated
   end
 
 

@@ -56,8 +56,10 @@ EOS
   opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
   opt :label, "Name used as label for this crawl", :short => 'n', :type => String
   opt :quell, "Exclude crawl subdirectories", :type => String
-  opt :ini_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
-  opt :ini_path, "Storage configuration file", :type => String, :short => 'I'
+  opt :cfg_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
+  opt :cfg_path, "Storage configuration file", :type => String, :short => 'F'
+  opt :skip_upload, "Cloud format without upload", :default => false, :short => 'S'
+  opt :elastic_url, "Local ElasticSearch URL", :type => String, :default => 'http://localhost:9200/lc_index', :short => 'E'
 
 end
 
@@ -70,9 +72,9 @@ opts[:logfile] = File.expand_path(opts[:logfile]) if opts[:logfile]
 opts[:outfile] = File.expand_path(opts[:outfile]) if opts[:outfile]
 
 if opts[:outdir] == nil
-  Trollop::die :ini_cipher, "Encryption/decryption cipher key must exist" if opts[:ini_cipher] == nil
-  Trollop::die :ini_path, "Storage configuration file must exist" if opts[:ini_path] == nil
-  opts[:format] = 'search_index'
+  Trollop::die :cfg_cipher, "Encryption/decryption cipher key must exist" if opts[:cfg_cipher] == nil
+  Trollop::die :cfg_path, "Storage configuration file must exist" if opts[:cfg_path] == nil
+  opts[:format] = 'cloud'
 else
   Trollop::die :outdir, "Directory must exist" unless File.exists?(opts[:outdir])
 end

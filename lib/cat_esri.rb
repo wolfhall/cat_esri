@@ -10,8 +10,8 @@ require "socket"
 require "yaml"
 require "openssl"
 require "geo_ruby"
-require "indextank"
 require "tire"
+require 'aws-sdk'
 include GeoRuby::SimpleFeatures
 include GeoRuby::Shp4r
 
