@@ -56,6 +56,7 @@ EOS
   opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
   opt :label, "Name used as label for this crawl", :short => 'n', :type => String
   opt :quell, "Exclude crawl subdirectories", :type => String
+  opt :group_name, "Group Name assigned to this data", :type => String, :short => 'G'
   opt :cfg_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
   opt :cfg_path, "Storage configuration file", :type => String, :short => 'F'
   opt :skip_upload, "Cloud format without upload", :default => false, :short => 'S'
@@ -64,6 +65,7 @@ EOS
 end
 
 Trollop::die :path, "Cannot be blank" if opts[:path] == nil
+Trollop::die :group_name, "Cannot be blank" if opts[:group_name] == nil
 Trollop::die :path, "Path must exist" unless File.exist?(opts[:path])
 Trollop::die :format, "Unknown format type: '#{opts[:format]}'" unless CatEsri::FORMATS.include?(opts[:format])
 

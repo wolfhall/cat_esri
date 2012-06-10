@@ -72,6 +72,10 @@ module CatEsri
           end
           db.execute("commit")
           db.close
+
+          @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+          @logger.info "Wrote #{@vault.size} esri entries." if @logger
+          
         rescue Exception => e
           raise e
         end
@@ -92,6 +96,9 @@ module CatEsri
             end
           end
         end
+
+        @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+        @logger.info "Wrote #{@vault.size} esri entries." if @logger
 
       when 'cloud'
 
@@ -167,8 +174,8 @@ module CatEsri
 	    # puts inflate_decrypt(cfg['cipher_key'],raw )
 	    # puts "-"*50
 	    ###############################################
-            @output.puts "Wrote #{@vault.size} entries to cloud.\n\n"
-            @logger.info "Wrote #{@vault.size} entries to cloud." if @logger
+            @output.puts "Wrote #{@vault.size} esri entries to cloud storage.\n\n"
+            @logger.info "Wrote #{@vault.size} esri entries to cloud storage." if @logger
           else
             @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}"
             @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}" if @logger
@@ -193,6 +200,9 @@ module CatEsri
             refresh
           end
 
+          @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+          @logger.info "Wrote #{@vault.size} esri entries." if @logger
+
         rescue Exception => e
           @output.puts "ElasticSearch bulk import problem: trying again (#{count}).\n\n"
           @logger.info "ElasticSearch bulk import problem: trying again (#{count})" if @logger
@@ -202,10 +212,7 @@ module CatEsri
 
       end
 
-      @output.puts "Wrote #{@vault.size} esri entries.\n\n"
-      @logger.info "Wrote #{@vault.size} esri entries." if @logger
       @vault.clear
-
 
     end
 

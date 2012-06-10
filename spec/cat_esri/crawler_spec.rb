@@ -10,18 +10,11 @@ module CatEsri
     before {
       opts = {
         :outfile=>nil,
-        #:path_given=>true,
         :path=>"data/AIRPORTS/AIRPORTS.shp",
-        #:help=>false,
-        #:esrigdb=>false,
-        #:esrigdb_given=>false,
-        #:ggxlayer=>false,
-        #:ggxlayer_given=>false,
-        #:logfile=>nil,
         :format=>"csv",
         :timeout=>30,
         :xitems=>50000,
-        #:version=>false
+        :group_name => 'test'
         }
       crawler.options = opts
       @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"

@@ -80,6 +80,7 @@ module CatEsri
       h = {
         :store => 'shapefile',
         :label => @options[:label],
+        :group_name => guidify(@options[:group_name]),
         :identifier => File.basename(path.gsub('\\','/').downcase, '.shp'),
         :location => normal_seps(path),
         :project => 'nonproj',
@@ -157,6 +158,7 @@ module CatEsri
       h = {
   	:store => 'esri_pgdb',
   	:label => @options[:label],
+  	:group_name => guidify(@options[:group_name]),
   	:identifier => File.basename(path.gsub('\\','/')),
   	:location => normal_seps(path),
   	:project => 'nonproj',
@@ -254,6 +256,7 @@ module CatEsri
       h = {
         :store => 'esri_fgdb',
         :label => @options[:label],
+        :group_name => guidify(@options[:group_name]),
         :identifier => File.basename(path.gsub('\\','/')),
         :location => normal_seps(path),
         :project => 'nonproj',

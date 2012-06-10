@@ -18,7 +18,8 @@ module CatEsri
       crawler.options = {
         :path => @testdata,
         :outdir => @testdata,
-        :xitems => 50000
+        :xitems => 50000,
+        :group_name => 'test'
       }
     }
 
