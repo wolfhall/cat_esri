@@ -75,7 +75,7 @@ module CatEsri
 
           @output.puts "Wrote #{@vault.size} esri entries.\n\n"
           @logger.info "Wrote #{@vault.size} esri entries." if @logger
-          
+
         rescue Exception => e
           raise e
         end

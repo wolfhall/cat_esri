@@ -17,6 +17,7 @@ module CatEsri
         :path => @testdata,
         :outdir => @testdata,
         :xitems => 50000,
+        :format => 'csv',
         :group_name => 'test'
       }
     }

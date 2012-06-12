@@ -114,22 +114,27 @@ module CatEsri
 
   #----------
   # Paranoid removal of scary characters and stringification of hash keys for
-  # easier digestion into sqlite and csv formats.
+  # easier digestion into sqlite and csv formats. Preserves numeric formats.
   def scrub_values(h)
     new_v = ""
     h.each_pair do |k,v|
       next if v.nil?
-      new_v = v.to_s
-      begin
-        # try UTF-8 first, then Windows
-        cleaned = new_v.dup.force_encoding('UTF-8')
-        cleaned = new_v.encode( 'UTF-8', 'Windows-1252' ) unless cleaned.valid_encoding?
-        new_v = cleaned
-      rescue EncodingError
-        # ...you had your chance, string!
-        new_v.encode!( 'UTF-8', invalid: :replace, undef: :replace )
+      if ( (v.is_a? Fixnum) || (v.is_a? Float) )
+        h[k] = v
+        next
+      else
+        new_v = v.to_s
+        begin
+          # try UTF-8 first, then Windows
+          cleaned = new_v.dup.force_encoding('UTF-8')
+          cleaned = new_v.encode( 'UTF-8', 'Windows-1252' ) unless cleaned.valid_encoding?
+          new_v = cleaned
+        rescue EncodingError
+          # ...you had your chance, string!
+          new_v.encode!( 'UTF-8', invalid: :replace, undef: :replace )
+        end
+        h[k] = new_v
       end
-      h[k] = new_v
     end
     h.each_pair{ |k,v| h[k] = rm_evil(v) }
   end
@@ -138,10 +143,12 @@ module CatEsri
   # companion of scrub_values. remove some scary characters relevant to csv/index formats
   def rm_evil(s)
     return "" if s.nil?
+    return s unless s.is_a? String
     evil = %w( ' ` , " | )
     evil.each{|x| s.gsub!(x,"_")}
     return s
   end
+
 
 
   #----------

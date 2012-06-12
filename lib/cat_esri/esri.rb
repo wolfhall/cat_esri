@@ -68,10 +68,10 @@ module CatEsri
       cs = get_multi_shp_checksum(path)
 
       begin
-        x_min = ShpFile.open(path).xmin.to_s
-        x_max = ShpFile.open(path).xmax.to_s
-        y_min = ShpFile.open(path).ymin.to_s
-        y_max = ShpFile.open(path).ymax.to_s
+        x_min = ShpFile.open(path).xmin ||= 0.0
+        x_max = ShpFile.open(path).xmax ||= 0.0
+        y_min = ShpFile.open(path).ymin ||= 0.0
+        y_max = ShpFile.open(path).ymax ||= 0.0
       rescue
         @output.puts "malformed shapefile: #{path}"
         @logger.info "malformed shapefile: #{path}" if @logger
@@ -86,12 +86,12 @@ module CatEsri
         :project => 'nonproj',
         :checksum => cs,
         :modified => File.mtime(path).strftime("%Y/%m/%d %H:%M:%S"),
-        :bytes => get_multi_shp_bytes(path).to_s,
+        :bytes => get_multi_shp_bytes(path).to_i,
         :coordsys => get_shp_coordsys(path),
-        :x_min => x_min || '',
-        :x_max => x_max || '',
-        :y_min => y_min || '',
-        :y_max => y_max || '',
+        :x_min => x_min.to_f,
+        :x_max => x_max.to_f,
+        :y_min => y_min.to_f,
+        :y_max => y_max.to_f,
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,
@@ -128,10 +128,11 @@ module CatEsri
       # returns a multi-dim array, one array per table. transpose to get 4 x/y columns
       # from which to collect min/max extents for ALL user tables (in whatever x/y projection units)
       db.query("select ExtentLeft, ExtentRight, ExtentBottom, ExtentTop from GDB_GeomColumns")
-      x_min = db.data.transpose[0].min.to_s
-      x_max = db.data.transpose[1].max.to_s
-      y_min = db.data.transpose[2].min.to_s
-      y_max = db.data.transpose[3].max.to_s
+
+      x_min = db.data.transpose[0][0] ||= 0.0
+      x_max = db.data.transpose[1][0] ||= 0.0
+      y_min = db.data.transpose[2][1] ||= 0.0
+      y_max = db.data.transpose[3][1] ||= 0.0
 
       db.query("select name from GDB_ObjectClasses")
       tables = db.data
@@ -164,12 +165,12 @@ module CatEsri
   	:project => 'nonproj',
   	:checksum => cs,
   	:modified => File.mtime(path).strftime("%Y/%m/%d %H:%M:%S"),
-  	:bytes => File.size(path).to_s,
+  	:bytes => File.size(path).to_i,
   	:coordsys => coordsys,
-  	:x_min => x_min,
-        :x_max => x_max,
-        :y_min => y_min,
-        :y_max => y_max,
+  	:x_min => x_min.to_f,
+        :x_max => x_max.to_f,
+        :y_min => y_min.to_f,
+        :y_max => y_max.to_f,
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,
@@ -262,12 +263,12 @@ module CatEsri
         :project => 'nonproj',
         :checksum => cs,
         :modified => mod.strftime("%Y/%m/%d %H:%M:%S"),
-        :bytes => bytes.to_s,
+        :bytes => bytes.to_i,
         :coordsys => nil,
-        :x_min => nil,
-        :x_max => nil,
-        :y_min => nil,
-        :y_max => nil,
+        :x_min => 0.0,
+        :x_max => 0.0,
+        :y_min => 0.0,
+        :y_max => 0.0,
         :cloud => get_uniq_cloud(strings),
         :minced => mince(path),
         :scanclient => hostname,

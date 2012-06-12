@@ -8,8 +8,9 @@ module CatEsri
     let(:crawler) { Crawler.new(output) }
 
     before {
+      @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
       opts = {
-        :outfile=>nil,
+        :outdir => @testdata,
         :path=>"data/AIRPORTS/AIRPORTS.shp",
         :format=>"csv",
         :timeout=>30,
@@ -17,7 +18,6 @@ module CatEsri
         :group_name => 'test'
         }
       crawler.options = opts
-      @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
     }
 
     after{
