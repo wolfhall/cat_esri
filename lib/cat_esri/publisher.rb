@@ -1,6 +1,7 @@
 module CatEsri
 
   FORMATS = %w(sqlite3 csv cloud elasticsearch)
+  RETRY = 5
 
   class Publisher
     include CatEsri
@@ -152,7 +153,7 @@ module CatEsri
 
           object = bucket.objects[File.basename(outfile,'.*') + '.crypt']
 
-          5.times do
+          RETRY.times do
 
             object.write(:data => encrypted_deflated_csv, :server_side_encryption => :aes256)
 
@@ -188,6 +189,7 @@ module CatEsri
         es_url = File.dirname(@elastic_url)
         es_idx = File.basename(@elastic_url)
         Tire.configure{ url es_url }
+        complete = false
 
         docs = @vault.collect{ |h| h.merge!( {:type=>h[:model],:id=>h[:guid]} ) }
 
@@ -199,15 +201,28 @@ module CatEsri
             import docs
             refresh
           end
-
-          @output.puts "Wrote #{@vault.size} esri entries.\n\n"
-          @logger.info "Wrote #{@vault.size} esri entries." if @logger
+          complete = true
 
         rescue Exception => e
-          @output.puts "ElasticSearch bulk import problem: trying again (#{count}).\n\n"
-          @logger.info "ElasticSearch bulk import problem: trying again (#{count})" if @logger
-          @logger.info e if @logger
-          retry if (count < 6)
+
+          if (count < RETRY+1)
+            @output.puts "ElasticSearch bulk import problem: trying again (#{count}).\n\n"
+            @logger.info "ElasticSearch bulk import problem: trying again (#{count})" if @logger
+            @logger.info e if @logger
+            sleep 2
+            retry
+          end
+
+        ensure
+
+          if complete
+            @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+            @logger.info "Wrote #{@vault.size} esri entries." if @logger
+          else
+            @output.puts "Too many ElasticSearch import errors. Try again later or contact LogicalCat.\n\n"
+            @logger.info "Too many ElasticSearch import errors. Try again later or contact LogicalCat." if @logger
+          end
+
         end
 
       end
