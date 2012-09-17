@@ -57,10 +57,8 @@ module CatEsri
         @pub.wrap_it_up
 
       rescue Exception => e
-        @output.puts "ERROR: #{e.message}"
-        @output.puts e.backtrace.inspect
-        @logger.error e.message if @logger
-        @logger.error e.backtrace.inspect if @logger
+	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
       ensure
         @logger.close if @logger
       end

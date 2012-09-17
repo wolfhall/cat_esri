@@ -24,8 +24,10 @@ module CatEsri
 
     #----------
     # add a map hash to the vault, publish if xitems
-    def add_map(x)
-      @vault << x
+    def add_map(h)
+      f = Hash[MAP_FIELDS.map{ |x| [x,nil] }]
+      h = f.merge(h)
+      @vault << h
       if @vault.size == @xitems
         publish(autoname('map'),'maps')
         @vault.clear
@@ -44,9 +46,14 @@ module CatEsri
     # Ensure unique file names by using datatype, timestamp (with microseconds) and suffix.
     # Also gets called when xitems limit is reached.
     def autoname(type)
-      return unless @outdir
-      stamp = sprintf('%.6f',"#{Time.now.to_i}.#{Time.now.usec}".to_f).gsub('.','')
-      File.join(@outdir,"#{type.upcase}_#{stamp}.#{@format.downcase}")
+      begin
+	return unless @outdir
+	stamp = sprintf('%.6f',"#{Time.now.to_i}.#{Time.now.usec}".to_f).gsub('.','')
+	File.join(@outdir,"#{type.upcase}_#{stamp}.#{@format.downcase}")
+      rescue Exception => e
+	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      end
     end
 
 
@@ -78,7 +85,8 @@ module CatEsri
           @logger.info "Wrote #{@vault.size} esri entries." if @logger
 
         rescue Exception => e
-          raise e
+	  @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	  @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
         end
 
       when 'csv'
@@ -92,8 +100,8 @@ module CatEsri
             begin
               csv << r.values.to_a
             rescue Exception => e
-              @output.puts "csv parsing error: #{e}"
-              @logger.info "csv parsing error: #{e}" if @logger
+	      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
             end
           end
         end
@@ -120,8 +128,8 @@ module CatEsri
             begin
               csv << r.values.to_a
             rescue Exception => e
-              @output.puts "csv/cloud parsing error: #{e}"
-              @logger.error "csv/cloud parsing error: #{e}" if @logger
+	      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
             end
           end
         end

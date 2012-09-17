@@ -32,7 +32,8 @@ module CatEsri
       f.close
       return cs
     rescue Exception => e
-      raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -40,20 +41,30 @@ module CatEsri
   #----------
   # Just a hostname.
   def hostname
-    Socket.gethostname
+    begin
+      Socket.gethostname
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
   #----------
   # use with Find/prune to avoid getting kicked out of recursion due to
   # inaccessible folders
   def inaccessible_dir?(d)
-    return if File.file?(d)
     begin
-      Dir.open(File.join(d,'.'))
-    rescue Errno::EACCES
-      return true
+      return if File.file?(d)
+      begin
+	Dir.open(File.join(d,'.'))
+      rescue Errno::EACCES
+	return true
+      end
+      return false
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    return false
   end
 
   #----------
@@ -62,17 +73,22 @@ module CatEsri
   # stripped out. This cloud can be used for text search indexes on data types that may not
   # necessarily contain formatted text and have a lot of redundancy (like shapefiles).
   def get_uniq_cloud(a)
-    ucloud = []
-    # some golf to yield a single array of unique stings
-    a.flatten.uniq.join(' ').scan(/\w+/).uniq.each do |x|
-      s = x.strip
-      # keep 10 and 14 digit UWIs
-      #ucloud << s if s =~ /^\d{10}$|^\d{14}$/
-      ucloud << s if s =~ /\d{10}00\d{2}|\d{10}/
-      # keep string unless it is a number or too short (<2 chars)
-      ucloud << s unless s =~ /[-+]?\d*\.?\d+/ || s.length < 2
+    begin
+      ucloud = []
+      # some golf to yield a single array of unique stings
+      a.flatten.uniq.join(' ').scan(/\w+/).uniq.each do |x|
+	s = x.strip
+	# keep 10 and 14 digit UWIs
+	#ucloud << s if s =~ /^\d{10}$|^\d{14}$/
+	ucloud << s if s =~ /\d{10}00\d{2}|\d{10}/
+	# keep string unless it is a number or too short (<2 chars)
+	ucloud << s unless s =~ /[-+]?\d*\.?\d+/ || s.length < 2
+      end
+      return ucloud.join(' ')
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    return ucloud.join(' ')
   end
 
 
@@ -80,73 +96,61 @@ module CatEsri
   # Basically like checksum, but accepts a string and doesn't worry about size.
   # Slashes are normalized to prevent unix/windows/ruby slash weirdness.
   def guidify(s)
-    Digest::SHA1.hexdigest(s.downcase.gsub('/','').gsub('\\',''))
-  end
-
-
-  #----------
-  # Tokenize a string in a somewhat ridiculous way. This allows all the chunks of
-  # files with complex naming conventions (even short fragments) to get parsed with
-  # conservative lexers.
-  def mince(s)
-    x = ""
-    s.each_byte do |b|
-      case b
-      when 0
-        x << " "
-      when (1..47)
-        x << " "
-      when (48..57)
-        x << b.chr
-      when (58..64)
-        x << " "
-      when (65..90)
-        x << b.chr
-      when (91..96)
-        x << " "
-      when (97..122)
-        x << b.chr
-      end
+    begin
+      Digest::SHA1.hexdigest(s.downcase.gsub('/','').gsub('\\',''))
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    return x.squeeze(' ').strip
   end
+
 
 
   #----------
   # Paranoid removal of scary characters and stringification of hash keys for
   # easier digestion into sqlite and csv formats. Preserves numeric formats.
   def scrub_values(h)
-    new_v = ""
-    h.each_pair do |k,v|
-      next if v.nil?
-      if ( (v.is_a? Fixnum) || (v.is_a? Float) )
-        h[k] = v
-        next
-      else
-        new_v = v.to_s
-        begin
-          # try UTF-8 first, then Windows
-          cleaned = new_v.dup.force_encoding('UTF-8')
-          cleaned = new_v.encode( 'UTF-8', 'Windows-1252' ) unless cleaned.valid_encoding?
-          new_v = cleaned
-        rescue EncodingError
-          # ...you had your chance, string!
-          new_v.encode!( 'UTF-8', invalid: :replace, undef: :replace )
-        end
-        h[k] = new_v
+    begin
+      new_v = ""
+      h.each_pair do |k,v|
+	next if v.nil?
+	if ( (v.is_a? Fixnum) || (v.is_a? Float) )
+	  h[k] = v
+	  next
+	else
+	  new_v = v.to_s
+	  begin
+	    # try UTF-8 first, then Windows
+	    cleaned = new_v.dup.force_encoding('UTF-8')
+	    cleaned = new_v.encode( 'UTF-8', 'Windows-1252' ) unless cleaned.valid_encoding?
+	    new_v = cleaned
+	  rescue EncodingError
+	    # ...you had your chance, string!
+	    new_v.encode!( 'UTF-8', invalid: :replace, undef: :replace )
+	  end
+	  h[k] = new_v
+	end
       end
+      h.each_pair{ |k,v| h[k] = rm_evil(v) }
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    h.each_pair{ |k,v| h[k] = rm_evil(v) }
   end
 
   #----------
   # companion of scrub_values. remove some scary characters relevant to csv/index formats
   def rm_evil(s)
-    return "" if s.nil?
-    return s unless s.is_a? String
-    evil = %w( ' ` , " | )
-    evil.each{|x| s.gsub!(x,"_")}
-    return s
+    begin
+      return "" if s.nil?
+      return s unless s.is_a? String
+      evil = %w( ' ` , " | )
+      evil.each{|x| s.gsub!(x,"_")}
+      return s
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
 
@@ -154,47 +158,67 @@ module CatEsri
   #----------
   # use consistent slashes depending on OS
   def normal_seps(s)
-    sep = '/'
-    sep = '\\' if @os == "mingw32"
-    return s.gsub('/',sep).gsub('\\',sep)
+    begin
+      sep = '/'
+      sep = '\\' if @os == "mingw32"
+      return s.gsub('/',sep).gsub('\\',sep)
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
 
   #----------
   # Decrypts a compressed yaml cloud config options file and returns hash
   def decrypted_inflated_cfg(key, path)
-    decipher = OpenSSL::Cipher::AES.new(256, :CBC)
-    decipher.decrypt
-    decipher.key = key
-    decipher.iv = Digest::SHA1.hexdigest(key)
-    crypted_cfg = File.binread(path)
-    decrypted_deflated = decipher.update(crypted_cfg) + decipher.final
-    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
-    return YAML.load(decrypted_inflated)
+    begin
+      decipher = OpenSSL::Cipher::AES.new(256, :CBC)
+      decipher.decrypt
+      decipher.key = key
+      decipher.iv = Digest::SHA1.hexdigest(key)
+      crypted_cfg = File.binread(path)
+      decrypted_deflated = decipher.update(crypted_cfg) + decipher.final
+      decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
+      return YAML.load(decrypted_inflated)
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
   #----------
   # Compress and encrypt a file (csv crawler output) and return data/string to be written to S3
   def deflate_encrypt(key, path)
-    deflated = Zlib::Deflate.deflate(File.read(path), Zlib::BEST_COMPRESSION)
-    cipher = OpenSSL::Cipher::AES.new(256, :CBC)
-    cipher.encrypt
-    cipher.key = key
-    cipher.iv = Digest::SHA1.hexdigest(key)
-    encrypted_deflated = cipher.update(deflated) + cipher.final
-    return encrypted_deflated
+    begin
+      deflated = Zlib::Deflate.deflate(File.read(path), Zlib::BEST_COMPRESSION)
+      cipher = OpenSSL::Cipher::AES.new(256, :CBC)
+      cipher.encrypt
+      cipher.key = key
+      cipher.iv = Digest::SHA1.hexdigest(key)
+      encrypted_deflated = cipher.update(deflated) + cipher.final
+      return encrypted_deflated
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
   #----------
   # Decompress and decrypt data/string from S3
   def inflate_decrypt(key, data)
-    decipher_s3 = OpenSSL::Cipher::AES.new(256, :CBC)
-    decipher_s3.decrypt
-    decipher_s3.key = key
-    decipher_s3.iv = Digest::SHA1.hexdigest(key)
-    decrypted_deflated = decipher_s3.update(data) + decipher_s3.final
-    decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
-    return decrypted_inflated
+    begin
+      decipher_s3 = OpenSSL::Cipher::AES.new(256, :CBC)
+      decipher_s3.decrypt
+      decipher_s3.key = key
+      decipher_s3.iv = Digest::SHA1.hexdigest(key)
+      decrypted_deflated = decipher_s3.update(data) + decipher_s3.final
+      decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
+      return decrypted_inflated
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
 
@@ -213,10 +237,15 @@ module CatEsri
     end
 
     def open
-      connection_string = 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source='
-      connection_string << @mdb
-      @connection = WIN32OLE.new('ADODB.Connection')
-      @connection.Open(connection_string)
+      begin
+	connection_string = 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source='
+	connection_string << @mdb
+	@connection = WIN32OLE.new('ADODB.Connection')
+	@connection.Open(connection_string)
+      rescue Exception => e
+	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      end
     end
 
     def query(sql)
@@ -238,7 +267,8 @@ module CatEsri
       begin
         @connection.Execute(sql)
       rescue Exception => e
-        raise e
+	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
       end
     end
 

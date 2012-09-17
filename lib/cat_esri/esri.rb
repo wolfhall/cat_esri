@@ -1,5 +1,8 @@
 module CatEsri
 
+  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
+
+
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
   # (with esrigdb flag) file and personal geodatabases. Include GeoGraphix GeoAtlas layers
@@ -36,7 +39,8 @@ module CatEsri
 
         end
       rescue Exception => e
-        raise e
+        @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+        @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger
       end
     end
   end
@@ -65,8 +69,6 @@ module CatEsri
       #include metadata from .shp.xml too
       IO.readlines(path+'.xml','r'){ |x| strings << x }  if File.exist?(path+'.xml')
 
-      cs = get_multi_shp_checksum(path)
-
       begin
         x_min = ShpFile.open(path).xmin ||= 0.0
         x_max = ShpFile.open(path).xmax ||= 0.0
@@ -77,34 +79,37 @@ module CatEsri
         @logger.info "malformed shapefile: #{path}" if @logger
       end
 
-      h = {
-        :store => 'shapefile',
-        :label => @options[:label],
-        :group_name => guidify(@options[:group_name]),
-        :identifier => File.basename(path.gsub('\\','/').downcase, '.shp'),
-        :location => normal_seps(path),
-        :project => 'nonproj',
-        :checksum => cs,
-        :modified => File.mtime(path).strftime("%Y/%m/%d %H:%M:%S"),
-        :bytes => get_multi_shp_bytes(path).to_i,
-        :coordsys => get_shp_coordsys(path),
-        :x_min => x_min.to_f,
-        :x_max => x_max.to_f,
-        :y_min => y_min.to_f,
-        :y_max => y_max.to_f,
-        :cloud => get_uniq_cloud(strings),
-        :minced => mince(path),
-        :scanclient => hostname,
-        :model => 'map',
-        :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
-      }
+      h = {}
 
-      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
+      h[:store]      = 'shapefile'
+      h[:label]      = @options[:label]
+      h[:group_hash] = guidify(@options[:group_name])
+      h[:identifier] = File.basename(path.gsub('\\','/').downcase, '.shp')
+      h[:location]   = normal_seps(path)
+      h[:scanclient] = hostname
+      h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+      h[:model]      = 'map'
+      h[:project]    = 'nonproj'
+      h[:checksum]   = get_multi_shp_checksum(path)
+      h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:bytes]      = get_multi_shp_bytes(path).to_i
+
+      h[:coordsys]   = get_shp_coordsys(path)
+      h[:x_min]      = x_min.to_f
+      h[:x_max]      = x_max.to_f
+      h[:y_min]      = y_min.to_f
+      h[:y_max]      = y_max.to_f
+      
+      h[:guid]       = guidify("#{h[:project]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
+
+      h[:cloud]      = get_uniq_cloud(strings)
+
 
       @pub.add_map scrub_values(h)
 
     rescue Exception => e
-      raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger
     end
 
   end
@@ -153,37 +158,35 @@ module CatEsri
       end
 
       db.close
+      h = {}
 
-      cs = checksum(path)
+      h[:store]      = 'esri_pgdb'
+      h[:label]      = @options[:label]
+      h[:group_hash] = guidify(@options[:group_name])
+      h[:identifier] = File.basename(path.gsub('\\','/'))
+      h[:location]   = normal_seps(path)
+      h[:scanclient] = hostname
+      h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+      h[:model]      = 'map'
+      h[:project]    = 'nonproj'
+      h[:checksum]   = checksum(path)
+      h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:bytes]      = File.size(path).to_i
+      h[:coordsys]   = coordsys
+      h[:x_min]      = x_min.to_f
+      h[:x_max]      = x_max.to_f
+      h[:y_min]      = y_min.to_f
+      h[:y_max]      = y_max.to_f
+      
+      h[:cloud]      = get_uniq_cloud(strings)
 
-      h = {
-  	:store => 'esri_pgdb',
-  	:label => @options[:label],
-  	:group_name => guidify(@options[:group_name]),
-  	:identifier => File.basename(path.gsub('\\','/')),
-  	:location => normal_seps(path),
-  	:project => 'nonproj',
-  	:checksum => cs,
-  	:modified => File.mtime(path).strftime("%Y/%m/%d %H:%M:%S"),
-  	:bytes => File.size(path).to_i,
-  	:coordsys => coordsys,
-  	:x_min => x_min.to_f,
-        :x_max => x_max.to_f,
-        :y_min => y_min.to_f,
-        :y_max => y_max.to_f,
-        :cloud => get_uniq_cloud(strings),
-        :minced => mince(path),
-        :scanclient => hostname,
-        :model => 'map',
-        :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
-      }
-
-      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
+      h[:guid]       = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
 
       @pub.add_map scrub_values(h)
 
     rescue Exception => e
-  	  raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
 
   end
@@ -252,39 +255,31 @@ module CatEsri
         strings = a.scan(/\w+/).uniq.collect{|w| w if (w.length > 6 && w.length < 20)}.compact
       end
 
-      cs = get_fgdb_checksum(path)
+      h = {}
+      h[:store]      = 'esri_fgdb'
+      h[:label]      = @options[:label]
+      h[:group_hash] = guidify(@options[:group_name])
+      h[:identifier] = File.basename(path.gsub('\\','/'))
+      h[:location]   = normal_seps(path)
+      h[:project]    = 'nonproj'
+      h[:checksum]   = get_fgdb_checksum(path)
+      h[:modified]   = mod.strftime("%Y/%m/%d %H:%M:%S")
+      h[:bytes]      = bytes.to_i
+      h[:cloud]      = get_uniq_cloud(strings)
+      h[:scanclient] = hostname
+      h[:model]      = 'map'
+      h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
 
-      h = {
-        :store => 'esri_fgdb',
-        :label => @options[:label],
-        :group_name => guidify(@options[:group_name]),
-        :identifier => File.basename(path.gsub('\\','/')),
-        :location => normal_seps(path),
-        :project => 'nonproj',
-        :checksum => cs,
-        :modified => mod.strftime("%Y/%m/%d %H:%M:%S"),
-        :bytes => bytes.to_i,
-        :coordsys => nil,
-        :x_min => 0.0,
-        :x_max => 0.0,
-        :y_min => 0.0,
-        :y_max => 0.0,
-        :cloud => get_uniq_cloud(strings),
-        :minced => mince(path),
-        :scanclient => hostname,
-        :model => 'map',
-        :created_at => Time.now.strftime("%Y/%m/%d %H:%M:%S")
-      }
-
-      h[:guid] = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
+      h[:guid] = guidify("#{h[:project]} #{h[:label]} #{h[:identifier]} #{h[:model]}")
 
       @pub.add_map scrub_values(h)
 
     rescue Errno::EACCES => ea
-      @output.puts ea.message
-      @logger.warn ea.message if @logger
+      @output.puts "ERROR: #{ea.message} #{ea.backtrace.inspect}"
+      @logger.error "ERROR: #{ea.message} #{ea.backtrace.inspect}" if @logger      
     rescue Exception => e
-      raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
 
   end
@@ -302,7 +297,8 @@ module CatEsri
       return true if (a && b)
       false
     rescue Exception => e
-      raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -321,7 +317,8 @@ module CatEsri
     rescue WIN32OLERuntimeError
       return false
     rescue Exception => e
-      raise e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
     false
   end
@@ -330,26 +327,31 @@ module CatEsri
   #----------
   # collect the projection coordinate system from wherever you can
   def get_shp_coordsys(path)
-    coordsys = 'unknown'
-    # get spatial reference from either .prj or .shp.xml (not both)
-    a_prj = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".prj"
-    #a_dbf = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
-    a_lay = File.dirname(path)+"/Layer.prj" # for geographix layers
-    a_xml = path+".xml"
-    if File.exist?(a_prj)
-      coordsys = norm_spatialref(IO.read(a_prj))
-    elsif File.exist?(a_lay)
-	    coordsys = norm_spatialref(IO.read(a_lay))
-    elsif File.exist?(a_xml)
-      File.open(a_xml,"r").each_line do |line|
-        if line.include?('identCode')
-          t0 = line.index('<identCode')
-          t1 = line.index('</identCode>')
-          coordsys = line.slice((t0+23)..(t1-1))
-        end
+    begin
+      coordsys = 'unknown'
+      # get spatial reference from either .prj or .shp.xml (not both)
+      a_prj = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".prj"
+      #a_dbf = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
+      a_lay = File.dirname(path)+"/Layer.prj" # for geographix layers
+      a_xml = path+".xml"
+      if File.exist?(a_prj)
+	coordsys = norm_spatialref(IO.read(a_prj))
+      elsif File.exist?(a_lay)
+	      coordsys = norm_spatialref(IO.read(a_lay))
+      elsif File.exist?(a_xml)
+	File.open(a_xml,"r").each_line do |line|
+	  if line.include?('identCode')
+	    t0 = line.index('<identCode')
+	    t1 = line.index('</identCode>')
+	    coordsys = line.slice((t0+23)..(t1-1))
+	  end
+	end
       end
+      return coordsys
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    return coordsys
   end
 
 
@@ -363,37 +365,47 @@ module CatEsri
   # construct a multi-file composite checksum based on shapefile components
   # path should be the .shp file itself so that other files in the same dir are skipped
   def get_multi_shp_checksum(path)
-    return nil if ! File.exist?(path)
-    base = File.basename(path.downcase, '.shp')
-    loc = File.dirname(path)
-    merged = ""
-    shp = (loc+"/"+base).downcase+".shp"
-    dbf = (loc+"/"+base).downcase+".dbf"
-    prj = (loc+"/"+base).downcase+".prj"
-    xml = (loc+"/"+base).downcase+".shp.xml"
-    shx = (loc+"/"+base).downcase+".shx"
-    sbn = (loc+"/"+base).downcase+".sbn"
-    sbx = (loc+"/"+base).downcase+".sbx"
-    merged << checksum(shp) if File.exist?(shp)
-    merged << checksum(dbf) if File.exist?(dbf)
-    merged << checksum(prj) if File.exist?(prj)
-    merged << checksum(xml) if File.exist?(xml)
-    merged << checksum(shx) if File.exist?(shx)
-    merged << checksum(sbn) if File.exist?(sbn)
-    merged << checksum(sbx) if File.exist?(sbx)
-    return guidify(merged)
+    begin
+      return nil if ! File.exist?(path)
+      base = File.basename(path.downcase, '.shp')
+      loc = File.dirname(path)
+      merged = ""
+      shp = (loc+"/"+base).downcase+".shp"
+      dbf = (loc+"/"+base).downcase+".dbf"
+      prj = (loc+"/"+base).downcase+".prj"
+      xml = (loc+"/"+base).downcase+".shp.xml"
+      shx = (loc+"/"+base).downcase+".shx"
+      sbn = (loc+"/"+base).downcase+".sbn"
+      sbx = (loc+"/"+base).downcase+".sbx"
+      merged << checksum(shp) if File.exist?(shp)
+      merged << checksum(dbf) if File.exist?(dbf)
+      merged << checksum(prj) if File.exist?(prj)
+      merged << checksum(xml) if File.exist?(xml)
+      merged << checksum(shx) if File.exist?(shx)
+      merged << checksum(sbn) if File.exist?(sbn)
+      merged << checksum(sbx) if File.exist?(sbx)
+      return guidify(merged)
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
 
   #----------
   # construct a multi-file checksum based on file geodatabase tables
   def get_fgdb_checksum(path)
-    return unless File.directory?(path)
-    cs = ""
-    Dir.foreach(path) do |d|
-      cs << checksum(File.join(path,d)) if d =~ /.gdbtablx/
+    begin
+      return unless File.directory?(path)
+      cs = ""
+      Dir.foreach(path) do |d|
+	cs << checksum(File.join(path,d)) if d =~ /.gdbtablx/
+      end
+      guidify(cs)
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
     end
-    guidify(cs)
   end
 
 
@@ -401,25 +413,30 @@ module CatEsri
   # add up the sizes of shapefile components and avoid extra recursion.
   # path should be the .shp file itself so that other files in the same dir are skipped
   def get_multi_shp_bytes(path)
-    return nil if ! File.exist?(path)
-    base = File.basename(path.downcase, '.shp')
-    loc = File.dirname(path)
-    total = 0
-    shp = (loc+"/"+base).downcase+".shp"
-    dbf = (loc+"/"+base).downcase+".dbf"
-    prj = (loc+"/"+base).downcase+".prj"
-    xml = (loc+"/"+base).downcase+".shp.xml"
-    shx = (loc+"/"+base).downcase+".shx"
-    sbn = (loc+"/"+base).downcase+".sbn"
-    sbx = (loc+"/"+base).downcase+".sbx"
-    total += File.size(shp) if File.exist?(shp)
-    total += File.size(dbf) if File.exist?(dbf)
-    total += File.size(prj) if File.exist?(prj)
-    total += File.size(xml) if File.exist?(xml)
-    total += File.size(shx) if File.exist?(shx)
-    total += File.size(sbn) if File.exist?(sbn)
-    total += File.size(sbx) if File.exist?(sbx)
-    return total
+    begin
+      return nil if ! File.exist?(path)
+      base = File.basename(path.downcase, '.shp')
+      loc = File.dirname(path)
+      total = 0
+      shp = (loc+"/"+base).downcase+".shp"
+      dbf = (loc+"/"+base).downcase+".dbf"
+      prj = (loc+"/"+base).downcase+".prj"
+      xml = (loc+"/"+base).downcase+".shp.xml"
+      shx = (loc+"/"+base).downcase+".shx"
+      sbn = (loc+"/"+base).downcase+".sbn"
+      sbx = (loc+"/"+base).downcase+".sbx"
+      total += File.size(shp) if File.exist?(shp)
+      total += File.size(dbf) if File.exist?(dbf)
+      total += File.size(prj) if File.exist?(prj)
+      total += File.size(xml) if File.exist?(xml)
+      total += File.size(shx) if File.exist?(shx)
+      total += File.size(sbn) if File.exist?(sbn)
+      total += File.size(sbx) if File.exist?(sbx)
+      return total
+    rescue Exception => e
+      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
+      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+    end
   end
 
 
@@ -430,28 +447,27 @@ module CatEsri
   # (this approach is a bit faster than the dbf parsing provided by the GeoRuby gem)
   def get_dbf_cloud(path)
     begin
-    dp =File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
-    return unless File.exists?(dp)
-    strings = []
-    table = DBF::Table.new(dp)
+      dp =File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
+      return unless File.exists?(dp)
+      strings = []
+      table = DBF::Table.new(dp)
 
-    c = 0
-    char_cols = []
-    table.columns.each do |col|
-      if col.type == "C"
-        char_cols << c
-        strings << col.name
+      c = 0
+      char_cols = []
+      table.columns.each do |col|
+	if col.type == "C"
+	  char_cols << c
+	  strings << col.name
+	end
+	c += 1
       end
-      c += 1
-    end
 
-    #shutdown early to save some time if no char columns
-    if char_cols.size == 0
-      table.close
-      return get_uniq_cloud(strings)
-    end
+      #shutdown early to save some time if no char columns
+      if char_cols.size == 0
+	table.close
+	return get_uniq_cloud(strings)
+      end
 
-    #begin
       Timeout::timeout(@options[:timeout]) {
         table.each do |r|
           a = r.to_a
@@ -465,10 +481,8 @@ module CatEsri
       @logger.warn "Exceeded timeout, partial contents returned: #{File.basename(path)}" if @logger
       return get_uniq_cloud(strings)
     rescue Exception => x
-
-      puts x
-      @output.puts "malformed shapefile: #{File.basename(path)}"
-      return "malformed shapefile: #{path}"
+      @output.puts "ERROR (malformed shapefile): #{x.message} #{x.backtrace.inspect}"
+      @logger.error "ERROR (malformed shapefile): #{x.message} #{x.backtrace.inspect}" if @logger      
     end
 
     table.close

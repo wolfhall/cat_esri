@@ -10,10 +10,6 @@ module CatEsri
       @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
     }
 
-    it "mince should parse a string ridiculously" do
-      crawler.mince("\\\\server\\share\\a_b_c_a~l!p@h#a$b%e^t&s*o(u)p.xyz-hij@foo+bar").should ==
-      "server share a b c al p h a b e t s o u p xyz hij foo bar"
-    end
 
     it "checksum should correctly generate a checksum" do
       @rasfile = File.join(@testdata,'test.mdb')
