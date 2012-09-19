@@ -51,8 +51,8 @@ module CatEsri
 	stamp = sprintf('%.6f',"#{Time.now.to_i}.#{Time.now.usec}".to_f).gsub('.','')
 	File.join(@outdir,"#{type.upcase}_#{stamp}.#{@format.downcase}")
       rescue Exception => e
-	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	@output.puts "#{e.message} #{e.backtrace.inspect}"
+	@logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
       end
     end
 
@@ -85,8 +85,8 @@ module CatEsri
           @logger.info "Wrote #{@vault.size} esri entries." if @logger
 
         rescue Exception => e
-	  @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	  @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	  @output.puts "#{e.message} #{e.backtrace.inspect}"
+	  @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
         end
 
       when 'csv'
@@ -100,8 +100,8 @@ module CatEsri
             begin
               csv << r.values.to_a
             rescue Exception => e
-	      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	      @output.puts "#{e.message} #{e.backtrace.inspect}"
+	      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
             end
           end
         end
@@ -128,8 +128,8 @@ module CatEsri
             begin
               csv << r.values.to_a
             rescue Exception => e
-	      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	      @output.puts "#{e.message} #{e.backtrace.inspect}"
+	      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
             end
           end
         end

@@ -2,7 +2,6 @@ module CatEsri
 
   MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
 
-
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
   # (with esrigdb flag) file and personal geodatabases. Include GeoGraphix GeoAtlas layers
@@ -39,8 +38,8 @@ module CatEsri
 
         end
       rescue Exception => e
-        @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-        @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger
+        @output.puts "#{e.message} #{e.backtrace.inspect}"
+        @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger
       end
     end
   end
@@ -100,7 +99,7 @@ module CatEsri
       h[:y_min]      = y_min.to_f
       h[:y_max]      = y_max.to_f
       
-      h[:guid]       = guidify("#{h[:project]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
+      h[:guid]       = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
       h[:cloud]      = get_uniq_cloud(strings)
 
@@ -108,8 +107,8 @@ module CatEsri
       @pub.add_map scrub_values(h)
 
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger
     end
 
   end
@@ -180,13 +179,13 @@ module CatEsri
       
       h[:cloud]      = get_uniq_cloud(strings)
 
-      h[:guid]       = guidify("#{h[:store]} #{h[:project]} #{h[:location]} #{h[:model]}")
+      h[:guid]       = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
       @pub.add_map scrub_values(h)
 
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
 
   end
@@ -263,23 +262,23 @@ module CatEsri
       h[:location]   = normal_seps(path)
       h[:project]    = 'nonproj'
       h[:checksum]   = get_fgdb_checksum(path)
-      h[:modified]   = mod.strftime("%Y/%m/%d %H:%M:%S")
+      h[:chgdate]    = mod.strftime("%Y/%m/%d %H:%M:%S")
       h[:bytes]      = bytes.to_i
       h[:cloud]      = get_uniq_cloud(strings)
       h[:scanclient] = hostname
       h[:model]      = 'map'
       h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
 
-      h[:guid] = guidify("#{h[:project]} #{h[:label]} #{h[:identifier]} #{h[:model]}")
+      h[:guid]       = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
       @pub.add_map scrub_values(h)
 
     rescue Errno::EACCES => ea
-      @output.puts "ERROR: #{ea.message} #{ea.backtrace.inspect}"
-      @logger.error "ERROR: #{ea.message} #{ea.backtrace.inspect}" if @logger      
+      @output.puts "#{ea.message} #{ea.backtrace.inspect}"
+      @logger.error "#{ea.message} #{ea.backtrace.inspect}" if @logger      
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
 
   end
@@ -297,8 +296,8 @@ module CatEsri
       return true if (a && b)
       false
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -317,8 +316,8 @@ module CatEsri
     rescue WIN32OLERuntimeError
       return false
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
     false
   end
@@ -349,8 +348,8 @@ module CatEsri
       end
       return coordsys
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -386,8 +385,8 @@ module CatEsri
       merged << checksum(sbx) if File.exist?(sbx)
       return guidify(merged)
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -403,8 +402,8 @@ module CatEsri
       end
       guidify(cs)
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -434,8 +433,8 @@ module CatEsri
       total += File.size(sbx) if File.exist?(sbx)
       return total
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 

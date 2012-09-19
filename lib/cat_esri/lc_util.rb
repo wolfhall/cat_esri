@@ -32,8 +32,8 @@ module CatEsri
       f.close
       return cs
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -44,8 +44,8 @@ module CatEsri
     begin
       Socket.gethostname
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -62,8 +62,8 @@ module CatEsri
       end
       return false
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -86,8 +86,8 @@ module CatEsri
       end
       return ucloud.join(' ')
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -99,8 +99,8 @@ module CatEsri
     begin
       Digest::SHA1.hexdigest(s.downcase.gsub('/','').gsub('\\',''))
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -133,8 +133,8 @@ module CatEsri
       end
       h.each_pair{ |k,v| h[k] = rm_evil(v) }
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -148,8 +148,8 @@ module CatEsri
       evil.each{|x| s.gsub!(x,"_")}
       return s
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -163,8 +163,8 @@ module CatEsri
       sep = '\\' if @os == "mingw32"
       return s.gsub('/',sep).gsub('\\',sep)
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -182,8 +182,8 @@ module CatEsri
       decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
       return YAML.load(decrypted_inflated)
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -199,8 +199,8 @@ module CatEsri
       encrypted_deflated = cipher.update(deflated) + cipher.final
       return encrypted_deflated
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -216,8 +216,8 @@ module CatEsri
       decrypted_inflated = Zlib::Inflate.inflate(decrypted_deflated)
       return decrypted_inflated
     rescue Exception => e
-      @output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-      @logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
 
@@ -243,8 +243,8 @@ module CatEsri
 	@connection = WIN32OLE.new('ADODB.Connection')
 	@connection.Open(connection_string)
       rescue Exception => e
-	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	@output.puts "#{e.message} #{e.backtrace.inspect}"
+	@logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
       end
     end
 
@@ -267,8 +267,8 @@ module CatEsri
       begin
         @connection.Execute(sql)
       rescue Exception => e
-	@output.puts "ERROR: #{e.message} #{e.backtrace.inspect}"
-	@logger.error "ERROR: #{e.message} #{e.backtrace.inspect}" if @logger      
+	@output.puts "#{e.message} #{e.backtrace.inspect}"
+	@logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
       end
     end
 
