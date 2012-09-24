@@ -54,7 +54,7 @@ EOS
   opt :outdir, "Write crawl results to directory", :type => String
   opt :esrigdb, "Include ESRI personal and file geodatabases", :default => false
   opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
-  opt :label, "Name used as label for this crawl", :short => 'n', :type => String
+  opt :label, "Name used as label for this crawl", :short => 'n', :type => String, :default => 'unlabeled'
   opt :quell, "Exclude crawl subdirectories", :type => String
   opt :group_name, "Group Name assigned to this data", :type => String, :short => 'G'
   opt :cfg_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
@@ -65,6 +65,7 @@ EOS
 end
 
 Trollop::die :path, "Cannot be blank" if opts[:path] == nil
+Trollop::die :label, "Cannot be blank" if opts[:label] == nil
 Trollop::die :group_name, "Cannot be blank" if opts[:group_name] == nil
 Trollop::die :path, "Path must exist" unless File.exist?(opts[:path])
 Trollop::die :format, "Unknown format type: '#{opts[:format]}'" unless CatEsri::FORMATS.include?(opts[:format])

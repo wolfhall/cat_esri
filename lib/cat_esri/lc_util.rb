@@ -59,6 +59,8 @@ module CatEsri
 	Dir.open(File.join(d,'.'))
       rescue Errno::EACCES
 	return true
+      rescue Errno::ENOENT
+	return true
       end
       return false
     rescue Exception => e
