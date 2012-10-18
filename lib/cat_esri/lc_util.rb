@@ -107,6 +107,26 @@ module CatEsri
   end
 
 
+  #----------
+  # Ghetto method to get a file's owner
+  def file_owner(path)
+    begin
+      if (RbConfig::CONFIG['target_os'] == 'mingw32')
+	path = path.gsub("/","\\")
+	a = %x[dir /q "#{path}" | findstr "#{File.basename(path)}"]
+	b = a.slice(39,a.length)
+	return b.slice(0, b.index(' '))
+      else
+	return %x[ls -l "#{path}"].split[2]
+      end
+    rescue Exception => e
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+      return nil
+    end
+  end
+    
+
 
   #----------
   # Paranoid removal of scary characters and stringification of hash keys for

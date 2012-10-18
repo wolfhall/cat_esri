@@ -1,6 +1,6 @@
 module CatEsri
 
-  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
+  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
 
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
@@ -92,6 +92,8 @@ module CatEsri
       h[:checksum]   = get_multi_shp_checksum(path)
       h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
       h[:bytes]      = get_multi_shp_bytes(path).to_i
+      h[:owner]      = file_owner(path)
+      h[:created]    = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
 
       h[:coordsys]   = get_shp_coordsys(path)
       h[:x_min]      = x_min.to_f
@@ -171,6 +173,8 @@ module CatEsri
       h[:checksum]   = checksum(path)
       h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
       h[:bytes]      = File.size(path).to_i
+      h[:owner]      = file_owner(path)
+      h[:created]    = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
       h[:coordsys]   = coordsys
       h[:x_min]      = x_min.to_f
       h[:x_max]      = x_max.to_f
@@ -264,6 +268,8 @@ module CatEsri
       h[:checksum]   = get_fgdb_checksum(path)
       h[:chgdate]    = mod.strftime("%Y/%m/%d %H:%M:%S")
       h[:bytes]      = bytes.to_i
+      h[:owner]      = file_owner(path)
+      h[:created]    = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
       h[:cloud]      = get_uniq_cloud(strings)
       h[:scanclient] = hostname
       h[:model]      = 'map'

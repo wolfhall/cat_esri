@@ -14,36 +14,6 @@ o-----------------------------------------------------------------------------o
 | Collect text content and file attributes from ESRI shapefiles, Personal     |
 | Geodatabases (windows only) and File Geodatabases (bit of a hack)           |
 o-----------------------------------------------------------------------------o
-|                                                                             |
-|                         LogicalCat ESRI crawler                             |
-|                                                                             |
-|          Usage: cat_esri -p <path> -o <outdir> [other options]              |
-|                                                                             |
-| Examples:                                                                   |
-|                                                                             |
-| Crawl path, write results to .csv file at c:\\temp:                          |
-|  cat_esri -p P:\\geodata\\maps -f csv -o C:\\temp                              |
-|                                                                             |
-| Same crawl with label 'mymaps':                                             |
-|  cat_esri -p P:\\geodata\\maps -f csv -o C:\\temp -n mymaps                    |
-|                                                                             |
-| Include ESRI geodatabases; export to sqlite3 format:                        |
-|  cat_esri -p P:\\geodata\\maps -f sqlite3 -o C:\\temp -e                       |
-|                                                                             |
-| Crawl path for shapefiles, including GeoGraphix layers (normally skipped):  |
-|  cat_esri -p P:\\geodata\\maps -g -o c:\\temp                                  |
-|                                                                             |
-| Use -q to exclude subdirectories from a crawl:                              |
-|  cat_esri -p P:\\data -q "P:\\data\\skip_me?P:\\data\\me_too" -o c:\\temp         |
-|  (separate multiple paths with a '?' character)                             |
-|                                                                             |
-|                                                                             |
-| NOTE: Output file names are auto-generated with a type, time stamp and      |
-| suffix based on format. For example, a csv output might look like this:     |
-|                                                                             |
-|    "c:\\temp\\MAP_1392987864628876.csv"                                       |
-|                                                                             |
-o-----------------------------------------------------------------------------o
 EOS
 
   opt :path, "Network path to scan", :type => String
