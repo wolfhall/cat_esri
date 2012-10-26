@@ -2,6 +2,14 @@ module CatEsri
 
   MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
 
+  SHP_TYPES = {
+    0 => "Null Shape",
+    1 => "Point",
+    3 => "Polyline",
+    5 => "Polygon",
+    8 => "Multipoint"
+  }
+
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
   # (with esrigdb flag) file and personal geodatabases. Include GeoGraphix GeoAtlas layers
@@ -69,41 +77,48 @@ module CatEsri
       IO.readlines(path+'.xml','r'){ |x| strings << x }  if File.exist?(path+'.xml')
 
       begin
-        x_min = ShpFile.open(path).xmin ||= 0.0
-        x_max = ShpFile.open(path).xmax ||= 0.0
-        y_min = ShpFile.open(path).ymin ||= 0.0
-        y_max = ShpFile.open(path).ymax ||= 0.0
-      rescue
+	shp = ShpFile.open(path)
+        x_min = shp.xmin ||= 0.0
+        x_max = shp.xmax ||= 0.0
+        y_min = shp.ymin ||= 0.0
+        y_max = shp.ymax ||= 0.0
+	shp_type = SHP_TYPES[shp.shp_type] ||= "unknown"
+	record_count = shp.record_count ||= 0
+      rescue Exception => e
         @output.puts "malformed shapefile: #{path}"
         @logger.info "malformed shapefile: #{path}" if @logger
+      ensure
+	shp.close
       end
 
       h = {}
 
-      h[:store]      = 'shapefile'
-      h[:label]      = @options[:label]
-      h[:group_hash] = guidify(@options[:group_name])
-      h[:identifier] = File.basename(path.gsub('\\','/').downcase, '.shp')
-      h[:location]   = normal_seps(path)
-      h[:scanclient] = hostname
-      h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-      h[:model]      = 'map'
-      h[:project]    = 'nonproj'
-      h[:checksum]   = get_multi_shp_checksum(path)
-      h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
-      h[:bytes]      = get_multi_shp_bytes(path).to_i
-      h[:owner]      = file_owner(path)
-      h[:created]    = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:store]        = 'shapefile'
+      h[:label]        = @options[:label]
+      h[:group_hash]   = guidify(@options[:group_name])
+      h[:identifier]   = File.basename(path.gsub('\\','/').downcase, '.shp')
+      h[:location]     = normal_seps(path)
+      h[:scanclient]   = hostname
+      h[:crawled_at]   = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+      h[:model]        = 'map'
+      h[:project]      = 'nonproj'
+      h[:checksum]     = get_multi_shp_checksum(path)
+      h[:chgdate]      = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:bytes]        = get_multi_shp_bytes(path).to_i
+      h[:owner]        = file_owner(path)
+      h[:created]      = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
 
-      h[:coordsys]   = get_shp_coordsys(path)
-      h[:x_min]      = x_min.to_f
-      h[:x_max]      = x_max.to_f
-      h[:y_min]      = y_min.to_f
-      h[:y_max]      = y_max.to_f
+      h[:coordsys]     = get_shp_coordsys(path)
+      h[:x_min]        = x_min.to_f
+      h[:x_max]        = x_max.to_f
+      h[:y_min]        = y_min.to_f
+      h[:y_max]        = y_max.to_f
+      h[:shp_type]     = shp_type
+      h[:record_count] = record_count.to_i
       
-      h[:guid]       = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
+      h[:guid]         = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
-      h[:cloud]      = get_uniq_cloud(strings)
+      h[:cloud]        = get_uniq_cloud(strings)
 
 
       @pub.add_map scrub_values(h)
