@@ -40,6 +40,9 @@ Trollop::die :group_name, "Cannot be blank" if opts[:group_name] == nil
 Trollop::die :path, "Path must exist" unless File.exist?(opts[:path])
 Trollop::die :format, "Unknown format type: '#{opts[:format]}'" unless CatEsri::FORMATS.include?(opts[:format])
 
+puts "-=-=-=-="
+puts $LOAD_PATH
+
 opts[:path] = File.expand_path(opts[:path]) if opts[:path]
 opts[:logfile] = File.expand_path(opts[:logfile]) if opts[:logfile]
 opts[:outfile] = File.expand_path(opts[:outfile]) if opts[:outfile]
