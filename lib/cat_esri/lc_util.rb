@@ -153,7 +153,7 @@ module CatEsri
 	  h[k] = new_v
 	end
       end
-      h.each_pair{ |k,v| h[k] = rm_evil(v) }
+      #h.each_pair{ |k,v| h[k] = rm_evil(v) }
     rescue Exception => e
       @output.puts "#{e.message} #{e.backtrace.inspect}"
       @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      

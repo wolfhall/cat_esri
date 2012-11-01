@@ -16,7 +16,7 @@ o-----------------------------------------------------------------------------o
 o-----------------------------------------------------------------------------o
 EOS
 
-  opt :path, "Network path to scan", :type => String
+  opt :path, "|#{File.expand_path('../../gdal', __FILE__)}|Network path to scan", :type => String
   opt :logfile, "Log crawl activity to file", :type => String
   opt :timeout, "Timeout for some long-running tasks", :default => 10
   opt :format, "Output format: csv or sqlite3", :type => String, :default => 'sqlite3'
@@ -40,8 +40,9 @@ Trollop::die :group_name, "Cannot be blank" if opts[:group_name] == nil
 Trollop::die :path, "Path must exist" unless File.exist?(opts[:path])
 Trollop::die :format, "Unknown format type: '#{opts[:format]}'" unless CatEsri::FORMATS.include?(opts[:format])
 
-puts "-=-=-=-="
-puts $LOAD_PATH
+# set gdal environment...
+ENV["GDAL_DATA"] = File.expand_path('../../gdal/data',__FILE__)
+$LOAD_PATH.unshift File.expand_path('../../gdal/apps',__FILE__)
 
 opts[:path] = File.expand_path(opts[:path]) if opts[:path]
 opts[:logfile] = File.expand_path(opts[:logfile]) if opts[:logfile]

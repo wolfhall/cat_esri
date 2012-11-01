@@ -1,6 +1,6 @@
 module CatEsri
 
-  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :coordsys, :x_min, :x_max, :y_min, :y_max, :guid, :cloud]
+  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :coordsys, :guid, :cloud]
 
   SHP_TYPES = {
     0 => "Null Shape",
@@ -9,6 +9,16 @@ module CatEsri
     5 => "Polygon",
     8 => "Multipoint"
   }
+
+  # The gdal executables cannot live in bin (dll conflict with ruby on install)
+  # Instead, define them here to run from gem location. The path and GDAL_DATA
+  # get defined in the trollop executable.
+  # FEATURE_MAX is the number of features to try to render to geojason;
+  # exceeding this number will use a bounding box instead.
+  OGRINFO     = File.expand_path('../../../gdal/apps/ogrinfo.exe',__FILE__)
+  GDALSRSINFO = File.expand_path('../../../gdal/apps/gdalsrsinfo.exe',__FILE__)
+  OGR2OGR     = File.expand_path('../../../gdal/apps/ogr2ogr.exe',__FILE__)
+  FEATURE_MAX = 20
 
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
@@ -115,6 +125,8 @@ module CatEsri
       h[:y_max]        = y_max.to_f
       h[:shp_type]     = shp_type
       h[:record_count] = record_count.to_i
+      
+      h = h.merge(get_gdal_data(path))
       
       h[:guid]         = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
@@ -373,6 +385,77 @@ module CatEsri
       @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
     end
   end
+  
+  #----------
+  # use a subset of gdal utilities (plucked from the full install) to collect
+  # medatadata about the shapefile: geometry, feature count and extents.
+  # If there are few enough features, create a geojson representation of them.
+  # Otherwise, just create a geojson box based on the extents.
+  def get_gdal_data(path)
+    begin
+
+      a = %x[#{OGRINFO} -ro -al #{path} -fid 0]
+      
+      geometry = nil
+      feature_count = 0
+      extent = nil
+
+      a.each_line do |x|
+	geometry = x.split(':')[1].strip if /^Geometry/.match x rescue nil 
+	feature_count = x.split(':')[1].strip.to_i if /^Feature Count/.match x rescue nil
+	extent = x.split(':')[1].strip if /^Extent/.match x rescue nil
+      end
+
+      return {
+	:geometry => geometry,
+	:feature_count => feature_count,
+	:extent => extent
+      }.merge(wkt_and_geojson(path))
+
+    rescue Exception => e
+      @output.puts "#{e.message} #{e.backtrace.inspect}"   
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+    end
+  end
+
+
+  #----------
+  def wkt_and_geojson(path)
+    begin
+      tmp = File.join(options[:outdir],"shp_#{Time.now.to_f}_tmp.json")
+      
+      prj = "#{File.join(File.dirname(path),File.basename(path.downcase, ".shp"))}.prj"
+      ggxgly = File.join(File.dirname(path), "Layer.gly.xml")
+      s_srs = nil
+      
+      if File.exists?(prj)
+	s_srs = File.read(prj)
+      elsif File.exists?(ggxgly)
+	g = File.open(ggxgly)
+	doc = Nokogiri::XML(g)
+	s_srs = "ESRI::"+doc.xpath("/gly/Layer/Attributes/CoordinateSystem/ESRI").inner_text
+	g.close
+      elsif s_srs.nil?
+        @output.puts "Failed to parse using gdal tools: #{path}"
+        @logger.error "Failed to parse using gdal tools: #{path}" if @logger      
+	File.delete(tmp) if File.exists?(tmp)
+	return
+      end
+      %x[#{OGR2OGR} -f GeoJSON \"#{tmp}\" \"#{path}\" -s_srs #{s_srs} -t_srs \"EPSG:4326\" -where \"fid < #{FEATURE_MAX}\"]
+
+      if File.size?(tmp)
+	return { :geojson => File.read(tmp), :wkt => s_srs }
+      else
+        @output.puts "Failed to parse using gdal tools: #{path}"
+        @logger.error "Failed to parse using gdal tools: #{path}" if @logger      
+      end
+      
+    rescue Exception => e
+      @output.puts "#{e.message} #{e.backtrace.inspect}"
+      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+    end
+  end
+
 
 
   #----------

@@ -12,6 +12,7 @@ require "openssl"
 require "geo_ruby"
 require "tire"
 require "aws-sdk"
+require "nokogiri"
 include GeoRuby::SimpleFeatures
 include GeoRuby::Shp4r
 
