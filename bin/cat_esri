@@ -16,7 +16,7 @@ o-----------------------------------------------------------------------------o
 o-----------------------------------------------------------------------------o
 EOS
 
-  opt :path, "|#{File.expand_path('../../gdal', __FILE__)}|Network path to scan", :type => String
+  opt :path, "Network path to scan", :type => String
   opt :logfile, "Log crawl activity to file", :type => String
   opt :timeout, "Timeout for some long-running tasks", :default => 10
   opt :format, "Output format: csv or sqlite3", :type => String, :default => 'sqlite3'
@@ -31,6 +31,7 @@ EOS
   opt :cfg_path, "Storage configuration file", :type => String, :short => 'F'
   opt :skip_upload, "Cloud format without upload", :default => false, :short => 'S'
   opt :elastic_url, "Local ElasticSearch URL", :type => String, :default => 'http://localhost:9200/lc_index', :short => 'E'
+  opt :max_features, "Maximum shapefile features to collect", :short => 'M', :default => 50
 
 end
 

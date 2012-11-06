@@ -108,7 +108,7 @@ module CatEsri
 
 
   #----------
-  # Ghetto method to get a file's owner
+  # slightly lame method to get a file's owner
   def file_owner(path)
     begin
       if (RbConfig::CONFIG['target_os'] == 'mingw32')
@@ -129,8 +129,7 @@ module CatEsri
 
 
   #----------
-  # Paranoid removal of scary characters and stringification of hash keys for
-  # easier digestion into sqlite and csv formats. Preserves numeric formats.
+  # Preserve numeric formats, but fix invalid encodings
   def scrub_values(h)
     begin
       new_v = ""
@@ -153,6 +152,7 @@ module CatEsri
 	  h[k] = new_v
 	end
       end
+      return h
       #h.each_pair{ |k,v| h[k] = rm_evil(v) }
     rescue Exception => e
       @output.puts "#{e.message} #{e.backtrace.inspect}"
@@ -162,18 +162,18 @@ module CatEsri
 
   #----------
   # companion of scrub_values. remove some scary characters relevant to csv/index formats
-  def rm_evil(s)
-    begin
-      return "" if s.nil?
-      return s unless s.is_a? String
-      evil = %w( ' ` , " | )
-      evil.each{|x| s.gsub!(x,"_")}
-      return s
-    rescue Exception => e
-      @output.puts "#{e.message} #{e.backtrace.inspect}"
-      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
-    end
-  end
+  #def rm_evil(s)
+  #  begin
+  #    return "" if s.nil?
+  #    return s unless s.is_a? String
+  #    evil = %w( ' ` , " | )
+  #    evil.each{|x| s.gsub!(x,"_")}
+  #    return s
+  #  rescue Exception => e
+  #    @output.puts "#{e.message} #{e.backtrace.inspect}"
+  #    @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+  #  end
+  #end
 
 
 

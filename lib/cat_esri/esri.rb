@@ -1,24 +1,14 @@
 module CatEsri
 
-  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :coordsys, :guid, :cloud]
-
-  SHP_TYPES = {
-    0 => "Null Shape",
-    1 => "Point",
-    3 => "Polyline",
-    5 => "Polygon",
-    8 => "Multipoint"
-  }
+  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :geometry, :feature_count, :native_extent, :wkt, :geojson, :guid, :cloud]
 
   # The gdal executables cannot live in bin (dll conflict with ruby on install)
   # Instead, define them here to run from gem location. The path and GDAL_DATA
   # get defined in the trollop executable.
-  # FEATURE_MAX is the number of features to try to render to geojason;
   # exceeding this number will use a bounding box instead.
   OGRINFO     = File.expand_path('../../../gdal/apps/ogrinfo.exe',__FILE__)
   GDALSRSINFO = File.expand_path('../../../gdal/apps/gdalsrsinfo.exe',__FILE__)
   OGR2OGR     = File.expand_path('../../../gdal/apps/ogr2ogr.exe',__FILE__)
-  FEATURE_MAX = 20
 
   #----------
   # Recurse through all sub-directories looking for (by default) just shapefiles or
@@ -83,24 +73,6 @@ module CatEsri
       strings = []
       strings << get_dbf_cloud(path)
 
-      #include metadata from .shp.xml too
-      IO.readlines(path+'.xml','r'){ |x| strings << x }  if File.exist?(path+'.xml')
-
-      begin
-	shp = ShpFile.open(path)
-        x_min = shp.xmin ||= 0.0
-        x_max = shp.xmax ||= 0.0
-        y_min = shp.ymin ||= 0.0
-        y_max = shp.ymax ||= 0.0
-	shp_type = SHP_TYPES[shp.shp_type] ||= "unknown"
-	record_count = shp.record_count ||= 0
-      rescue Exception => e
-        @output.puts "malformed shapefile: #{path}"
-        @logger.info "malformed shapefile: #{path}" if @logger
-      ensure
-	shp.close
-      end
-
       h = {}
 
       h[:store]        = 'shapefile'
@@ -117,21 +89,12 @@ module CatEsri
       h[:bytes]        = get_multi_shp_bytes(path).to_i
       h[:owner]        = file_owner(path)
       h[:created]      = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
-
-      h[:coordsys]     = get_shp_coordsys(path)
-      h[:x_min]        = x_min.to_f
-      h[:x_max]        = x_max.to_f
-      h[:y_min]        = y_min.to_f
-      h[:y_max]        = y_max.to_f
-      h[:shp_type]     = shp_type
-      h[:record_count] = record_count.to_i
       
       h = h.merge(get_gdal_data(path))
       
       h[:guid]         = guidify("#{h[:checksum]} #{h[:label]} #{h[:identifier]} #{h[:model]} #{h[:location]}")
 
       h[:cloud]        = get_uniq_cloud(strings)
-
 
       @pub.add_map scrub_values(h)
 
@@ -155,8 +118,7 @@ module CatEsri
       db = AccessDb.new(path)
       db.open
 
-      db.query("select SRTEXT from GDB_SpatialRefs;")
-      coordsys = norm_spatialref(db.data.to_s)
+      wkt = db.query("select SRTEXT from GDB_SpatialRefs;")
 
       # returns a multi-dim array, one array per table. transpose to get 4 x/y columns
       # from which to collect min/max extents for ALL user tables (in whatever x/y projection units)
@@ -188,25 +150,23 @@ module CatEsri
       db.close
       h = {}
 
-      h[:store]      = 'esri_pgdb'
-      h[:label]      = @options[:label]
-      h[:group_hash] = guidify(@options[:group_name])
-      h[:identifier] = File.basename(path.gsub('\\','/'))
-      h[:location]   = normal_seps(path)
-      h[:scanclient] = hostname
-      h[:crawled_at] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-      h[:model]      = 'map'
-      h[:project]    = 'nonproj'
-      h[:checksum]   = checksum(path)
-      h[:chgdate]    = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
-      h[:bytes]      = File.size(path).to_i
-      h[:owner]      = file_owner(path)
-      h[:created]    = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
-      h[:coordsys]   = coordsys
-      h[:x_min]      = x_min.to_f
-      h[:x_max]      = x_max.to_f
-      h[:y_min]      = y_min.to_f
-      h[:y_max]      = y_max.to_f
+      h[:store]         = 'esri_pgdb'
+      h[:label]         = @options[:label]
+      h[:group_hash]    = guidify(@options[:group_name])
+      h[:identifier]    = File.basename(path.gsub('\\','/'))
+      h[:location]      = normal_seps(path)
+      h[:scanclient]    = hostname
+      h[:crawled_at]    = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+      h[:model]         = 'map'
+      h[:project]       = 'nonproj'
+      h[:checksum]      = checksum(path)
+      h[:chgdate]       = File.mtime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:bytes]         = File.size(path).to_i
+      h[:owner]         = file_owner(path)
+      h[:created]       = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
+      h[:coordsys]      = coordsys
+      h[:native_extent] = "(#{x_min},#{y_min}) - (#{x_max},#{y_max})"
+      h[:wkt]           = wkt
       
       h[:cloud]      = get_uniq_cloud(strings)
 
@@ -355,61 +315,31 @@ module CatEsri
     false
   end
 
-
-  #----------
-  # collect the projection coordinate system from wherever you can
-  def get_shp_coordsys(path)
-    begin
-      coordsys = 'unknown'
-      # get spatial reference from either .prj or .shp.xml (not both)
-      a_prj = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".prj"
-      #a_dbf = File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
-      a_lay = File.dirname(path)+"/Layer.prj" # for geographix layers
-      a_xml = path+".xml"
-      if File.exist?(a_prj)
-	coordsys = norm_spatialref(IO.read(a_prj))
-      elsif File.exist?(a_lay)
-	      coordsys = norm_spatialref(IO.read(a_lay))
-      elsif File.exist?(a_xml)
-	File.open(a_xml,"r").each_line do |line|
-	  if line.include?('identCode')
-	    t0 = line.index('<identCode')
-	    t1 = line.index('</identCode>')
-	    coordsys = line.slice((t0+23)..(t1-1))
-	  end
-	end
-      end
-      return coordsys
-    rescue Exception => e
-      @output.puts "#{e.message} #{e.backtrace.inspect}"
-      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
-    end
-  end
   
   #----------
   # use a subset of gdal utilities (plucked from the full install) to collect
-  # medatadata about the shapefile: geometry, feature count and extents.
+  # metadata about the shapefile: geometry, feature count and extents.
   # If there are few enough features, create a geojson representation of them.
   # Otherwise, just create a geojson box based on the extents.
   def get_gdal_data(path)
     begin
 
-      a = %x[#{OGRINFO} -ro -al #{path} -fid 0]
+      a = %x[\"#{OGRINFO}\" -ro -al \"#{path}\" -fid 0]
       
       geometry = nil
       feature_count = 0
-      extent = nil
+      native_extent = nil
 
       a.each_line do |x|
 	geometry = x.split(':')[1].strip if /^Geometry/.match x rescue nil 
 	feature_count = x.split(':')[1].strip.to_i if /^Feature Count/.match x rescue nil
-	extent = x.split(':')[1].strip if /^Extent/.match x rescue nil
+	native_extent = x.split(':')[1].strip if /^Extent/.match x rescue nil
       end
 
       return {
 	:geometry => geometry,
 	:feature_count => feature_count,
-	:extent => extent
+	:native_extent => native_extent
       }.merge(wkt_and_geojson(path))
 
     rescue Exception => e
@@ -439,9 +369,9 @@ module CatEsri
         @output.puts "Failed to parse using gdal tools: #{path}"
         @logger.error "Failed to parse using gdal tools: #{path}" if @logger      
 	File.delete(tmp) if File.exists?(tmp)
-	return
+	return {:wkt => "Could not find valid projection WKT for shapefile"}
       end
-      %x[#{OGR2OGR} -f GeoJSON \"#{tmp}\" \"#{path}\" -s_srs #{s_srs} -t_srs \"EPSG:4326\" -where \"fid < #{FEATURE_MAX}\"]
+      %x[\"#{OGR2OGR}\" -f GeoJSON \"#{tmp}\" \"#{path}\" -s_srs \"ESRI::#{s_srs}\" -t_srs \"EPSG:4326\" -where \"fid < #{@options[:max_features]}\"]
 
       if File.size?(tmp)
 	return { :geojson => File.read(tmp), :wkt => s_srs }
@@ -457,12 +387,6 @@ module CatEsri
   end
 
 
-
-  #----------
-  # cleanup the spatial ref string stored in shapefile .prj files, pgdb, and GeoAtlas Layer.prj files
-  def norm_spatialref(s)
-    s.gsub(",","\n").gsub("\"",'').gsub(']','').gsub('[',': ').strip
-  end
 
   #----------
   # construct a multi-file composite checksum based on shapefile components
@@ -547,10 +471,10 @@ module CatEsri
   # parse text columns from a .dbf file (shapefile) and return unique cloud
   # 7-22-2010: added a timeout and char column limiter, primarily for the huge, mostly
   # numeric .dbfs generated by GeoGraphix isomap layers.
-  # (this approach is a bit faster than the dbf parsing provided by the GeoRuby gem)
   def get_dbf_cloud(path)
     begin
       dp =File.dirname(path)+"/"+File.basename(path.downcase, '.shp')+".dbf"
+      
       return unless File.exists?(dp)
       strings = []
       table = DBF::Table.new(dp)

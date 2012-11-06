@@ -9,12 +9,9 @@ require "digest"
 require "socket"
 require "yaml"
 require "openssl"
-require "geo_ruby"
 require "tire"
 require "aws-sdk"
 require "nokogiri"
-include GeoRuby::SimpleFeatures
-include GeoRuby::Shp4r
 
 require "cat_esri/version"
 require "cat_esri/crawler"
