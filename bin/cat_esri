@@ -23,7 +23,6 @@ EOS
   opt :xitems, "Maximum items per outfile", :default => 50000
   opt :outdir, "Write crawl results to directory", :type => String
   opt :esrigdb, "Include ESRI personal and file geodatabases", :default => false
-  opt :ggxlayer, "Include GeoAtlas Layers in shapefile scans", :default => false
   opt :label, "Name used as label for this crawl", :short => 'n', :type => String, :default => 'unlabeled'
   opt :quell, "Exclude crawl subdirectories", :type => String
   opt :group_name, "Group Name assigned to this data", :type => String, :short => 'G'

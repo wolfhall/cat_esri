@@ -23,9 +23,8 @@ module CatEsri
       Find.prune if inaccessible_dir?(f)
       begin
         Dir.foreach(f) do |d|
-          #exclude shapefile components in Discovery layers to avoid double-scanning
+          #matches esri shapefiles
           if /\.shp$/.match(d.downcase) && File.file?(File.join(f,d))
-            next if File.exist?(f+"/Layer.gly") unless @options[:ggxlayer]
             parse_shp(File.join(f,d))
           end
 
@@ -164,7 +163,6 @@ module CatEsri
       h[:bytes]         = File.size(path).to_i
       h[:owner]         = file_owner(path)
       h[:created]       = File.ctime(path).strftime("%Y/%m/%d %H:%M:%S")
-      h[:coordsys]      = coordsys
       h[:native_extent] = "(#{x_min},#{y_min}) - (#{x_max},#{y_max})"
       h[:wkt]           = wkt
       
@@ -366,23 +364,26 @@ module CatEsri
 	s_srs = "ESRI::"+doc.xpath("/gly/Layer/Attributes/CoordinateSystem/ESRI").inner_text
 	g.close
       elsif s_srs.nil?
-        @output.puts "Failed to parse using gdal tools: #{path}"
-        @logger.error "Failed to parse using gdal tools: #{path}" if @logger      
+        @output.puts "Could not parse using gdal tools: #{path}"
+        @logger.warn "Could not parse using gdal tools: #{path}" if @logger      
 	File.delete(tmp) if File.exists?(tmp)
-	return {:wkt => "Could not find valid projection WKT for shapefile"}
+	return {:wkt => "Could not find valid projection WKT for conversion."}
       end
-      %x[\"#{OGR2OGR}\" -f GeoJSON \"#{tmp}\" \"#{path}\" -s_srs \"ESRI::#{s_srs}\" -t_srs \"EPSG:4326\" -where \"fid < #{@options[:max_features]}\"]
+
+      %x[\"#{OGR2OGR}\" -f GeoJSON \"#{tmp}\" \"#{path}\" -s_srs #{s_srs} -t_srs \"EPSG:4326\" -where \"fid < #{@options[:max_features]}\"]
 
       if File.size?(tmp)
 	return { :geojson => File.read(tmp), :wkt => s_srs }
       else
-        @output.puts "Failed to parse using gdal tools: #{path}"
-        @logger.error "Failed to parse using gdal tools: #{path}" if @logger      
+        @output.puts "Could not parse using gdal tools: #{path}"
+        @logger.warn "Could not parse using gdal tools: #{path}" if @logger      
       end
       
     rescue Exception => e
       @output.puts "#{e.message} #{e.backtrace.inspect}"
       @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+    ensure
+      File.delete(tmp) if File.exists?(tmp)
     end
   end
 

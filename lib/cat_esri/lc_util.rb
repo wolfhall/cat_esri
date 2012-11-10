@@ -115,7 +115,7 @@ module CatEsri
 	path = path.gsub("/","\\")
 	a = %x[dir /q "#{path}" | findstr "#{File.basename(path)}"]
 	b = a.slice(39,a.length)
-	return b.slice(0, b.index(' '))
+	return b.slice(0, b.index(' ')) rescue "unknown"
       else
 	return %x[ls -l "#{path}"].split[2]
       end
