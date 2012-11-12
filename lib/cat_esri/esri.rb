@@ -1,13 +1,13 @@
 module CatEsri
 
-  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :geometry, :feature_count, :native_extent, :wkt, :geojson, :guid, :cloud]
+  MAP_FIELDS = [:store, :label, :group_hash, :identifier, :location, :scanclient, :crawled_at, :model, :project, :checksum, :chgdate, :bytes, :owner, :created, :geometry, :feature_count, :native_extent, :wkt, :guid, :geojson, :cloud]
 
   # The gdal executables cannot live in bin (dll conflict with ruby on install)
   # Instead, define them here to run from gem location. The path and GDAL_DATA
   # get defined in the trollop executable.
   # exceeding this number will use a bounding box instead.
   OGRINFO     = File.expand_path('../../../gdal/apps/ogrinfo.exe',__FILE__)
-  GDALSRSINFO = File.expand_path('../../../gdal/apps/gdalsrsinfo.exe',__FILE__)
+  #GDALSRSINFO = File.expand_path('../../../gdal/apps/gdalsrsinfo.exe',__FILE__)
   OGR2OGR     = File.expand_path('../../../gdal/apps/ogr2ogr.exe',__FILE__)
 
   #----------
@@ -357,15 +357,15 @@ module CatEsri
       s_srs = nil
       
       if File.exists?(prj)
-	s_srs = File.read(prj)
+	s_srs = "ESRI::"+File.read(prj)
       elsif File.exists?(ggxgly)
 	g = File.open(ggxgly)
 	doc = Nokogiri::XML(g)
 	s_srs = "ESRI::"+doc.xpath("/gly/Layer/Attributes/CoordinateSystem/ESRI").inner_text
 	g.close
       elsif s_srs.nil?
-        @output.puts "Could not parse using gdal tools: #{path}"
-        @logger.warn "Could not parse using gdal tools: #{path}" if @logger      
+        @output.puts "Could not find valid source srs for conversion: #{path}"
+        @logger.warn "Could not find valid source srs for conversion: #{path}" if @logger      
 	File.delete(tmp) if File.exists?(tmp)
 	return {:wkt => "Could not find valid projection WKT for conversion."}
       end
@@ -377,6 +377,7 @@ module CatEsri
       else
         @output.puts "Could not parse using gdal tools: #{path}"
         @logger.warn "Could not parse using gdal tools: #{path}" if @logger      
+	return { :geojson => nil, :wkt => s_srs }
       end
       
     rescue Exception => e

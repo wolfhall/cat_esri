@@ -19,8 +19,9 @@ EOS
   opt :path, "Network path to scan", :type => String
   opt :logfile, "Log crawl activity to file", :type => String
   opt :timeout, "Timeout for some long-running tasks", :default => 10
-  opt :format, "Output format: csv or sqlite3", :type => String, :default => 'sqlite3'
-  opt :xitems, "Maximum items per outfile", :default => 50000
+  opt :format, "Output format: csv or sqlite3", :type => String, :default => 'csv'
+  opt :xitems, "Maximum items per outfile", :default => 1000
+  opt :xwrite, "Maximum items before write", :default => 100, :short => 'X'
   opt :outdir, "Write crawl results to directory", :type => String
   opt :esrigdb, "Include ESRI personal and file geodatabases", :default => false
   opt :label, "Name used as label for this crawl", :short => 'n', :type => String, :default => 'unlabeled'

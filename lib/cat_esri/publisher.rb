@@ -12,6 +12,7 @@ module CatEsri
       @output = options[:output]
       @outdir = options[:outdir]
       @xitems = options[:xitems]
+      @xwrite = options[:xwrite]
       @format = options[:format]
       @logger = options[:logger]
       @skip_upload = options[:skip_upload]
@@ -19,8 +20,8 @@ module CatEsri
 
       @cfg_cipher = options[:cfg_cipher]
       @cfg_path = options[:cfg_path]
+      @timestamped = autoname('map')
     end
-
 
     #----------
     # add a map hash to the vault, publish if xitems
@@ -28,17 +29,20 @@ module CatEsri
       f = Hash[MAP_FIELDS.map{ |x| [x,nil] }]
       h = f.merge(h)
       @vault << h
+      if @vault.size == @xwrite
+	publish(@timestamped,'maps')
+      end
       if @vault.size == @xitems
-        publish(autoname('map'),'maps')
+        publish(@timestamped,'maps')
         @vault.clear
+	@timestamped = autoname('map')
       end
     end
-
 
     #----------
     # Publish any remaining data (i.e. haven't exceeded xitems) from various arrays.
     def wrap_it_up
-      publish(autoname('map'),'maps') if @vault.size > 0
+      publish(@timestamped,'maps') if @vault.size > 0
     end
 
 
@@ -56,9 +60,7 @@ module CatEsri
       end
     end
 
-
     #----------
-    # Write .csv or sqlite3 files. Assume everything went okay if outfile exists.
     def publish(outfile,table_name)
 
       @output.puts "\nWriting #{@vault.size} #{@format} entries..."
@@ -71,15 +73,22 @@ module CatEsri
         @logger.info "Writing to: #{outfile}" if @logger
 
         begin
-          db = SQLite3::Database.new(outfile)
-          db.execute("create table #{table_name} (#{@vault[0].keys.collect{|x| x.to_s}.join(',')})")
+
+	  if File.size?(outfile).nil?
+            db = SQLite3::Database.new(outfile)
+            db.execute("create table #{table_name} (#{@vault[0].keys.collect{|x| x.to_s}.join(',')})")
+	    db.close
+	  end
+
+	  db = SQLite3::Database.new(outfile)
           db.execute("begin transaction")
+
           @vault.each do |r|
-            s = "insert into #{table_name} (#{r.keys.collect{|x|x.to_s}.join(',')}) values (#{r.values.collect{|x| "'#{x}'"}.join(',')})"
-            db.execute(s)
-          end
+            sql = "insert into #{table_name} (#{r.keys.collect{|x|x.to_s}.join(',')}) values (#{(['?'] * r.keys.size).join(',')})"
+	    ins = db.prepare(sql)
+	    ins.execute(*r.values)
+	  end
           db.execute("commit")
-          db.close
 
           @output.puts "Wrote #{@vault.size} esri entries.\n\n"
           @logger.info "Wrote #{@vault.size} esri entries." if @logger
@@ -94,8 +103,8 @@ module CatEsri
         @output.puts "Writing to: #{outfile}"
         @logger.info "Writing to: #{outfile}" if @logger
 
-        CSV.open(outfile, "wb") do |csv|
-          csv << @vault[0].keys.to_a
+        CSV.open(outfile, "ab") do |csv|
+          csv << @vault[0].keys.to_a if File.size?(outfile).nil?
           @vault.each do |r|
             begin
               csv << r.values.to_a
@@ -122,8 +131,8 @@ module CatEsri
         @output.puts "Writing to: #{outfile}"
         @logger.info "Writing to: #{outfile}" if @logger
 
-        CSV.open(outfile, "wb") do |csv|
-          csv << @vault[0].keys.to_a
+        CSV.open(outfile, "ab") do |csv|
+          csv << @vault[0].keys.to_a if File.size?(outfile).nil?
           @vault.each do |r|
             begin
               csv << r.values.to_a
