@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec"
   s.add_runtime_dependency "trollop"
   s.add_runtime_dependency "sqlite3"
-  s.add_runtime_dependency "GeoRuby"
   s.add_runtime_dependency "dbf"
   s.add_runtime_dependency "tire"
   s.add_runtime_dependency "aws-sdk"

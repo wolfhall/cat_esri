@@ -100,23 +100,30 @@ module CatEsri
 
       when 'csv'
 
-        @output.puts "Writing to: #{outfile}"
-        @logger.info "Writing to: #{outfile}" if @logger
+	begin
 
-        CSV.open(outfile, "ab") do |csv|
-          csv << @vault[0].keys.to_a if File.size?(outfile).nil?
-          @vault.each do |r|
-            begin
-              csv << r.values.to_a
-            rescue Exception => e
-	      @output.puts "#{e.message} #{e.backtrace.inspect}"
-	      @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
-            end
-          end
+	  @output.puts "Writing to: #{outfile}"
+	  @logger.info "Writing to: #{outfile}" if @logger
+
+	  CSV.open(outfile, "ab") do |csv|
+	    csv << @vault[0].keys.to_a if File.size?(outfile).nil?
+	    @vault.each do |r|
+	      begin
+		csv << r.values.to_a
+	      rescue Exception => e
+		@output.puts "#{e.message} #{e.backtrace.inspect}"
+		@logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+	      end
+	    end
+	  end
+
+	  @output.puts "Wrote #{@vault.size} esri entries.\n\n"
+	  @logger.info "Wrote #{@vault.size} esri entries." if @logger
+
+        rescue Exception => e
+	  @output.puts "#{e.message} #{e.backtrace.inspect}"
+	  @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
         end
-
-        @output.puts "Wrote #{@vault.size} esri entries.\n\n"
-        @logger.info "Wrote #{@vault.size} esri entries." if @logger
 
       when 'cloud'
 

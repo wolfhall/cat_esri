@@ -39,7 +39,6 @@ depends on the following gems:
 
 * trollop
 * sqlite3
-* GeoRuby
 * dbf
 
 == Command Line Options
