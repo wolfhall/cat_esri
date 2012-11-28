@@ -134,6 +134,9 @@ module CatEsri
         end
 
         cfg = decrypted_inflated_cfg(@cfg_cipher, @cfg_path)
+	
+	# make new file since we can't easily append to s3
+	outfile = autoname('map')
 
         @output.puts "Writing to: #{outfile}"
         @logger.info "Writing to: #{outfile}" if @logger
