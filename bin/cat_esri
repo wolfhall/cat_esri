@@ -29,7 +29,6 @@ EOS
   opt :group_name, "Group Name assigned to this data", :type => String, :short => 'G'
   opt :cfg_cipher, "Encryption/decryption cipher key", :type => String, :short => 'C'
   opt :cfg_path, "Storage configuration file", :type => String, :short => 'F'
-  opt :skip_upload, "Cloud format without upload", :default => false, :short => 'S'
   opt :elastic_url, "Local ElasticSearch URL", :type => String, :default => 'http://localhost:9200/lc_index', :short => 'E'
   opt :max_features, "Maximum shapefile features to collect", :short => 'M', :default => 50
 

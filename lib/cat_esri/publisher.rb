@@ -15,7 +15,6 @@ module CatEsri
       @xwrite = options[:xwrite]
       @format = options[:format]
       @logger = options[:logger]
-      @skip_upload = options[:skip_upload]
       @elastic_url = options[:elastic_url]
 
       @cfg_cipher = options[:cfg_cipher]
@@ -155,61 +154,49 @@ module CatEsri
 
         encrypted_deflated_csv = deflate_encrypt(cfg['cipher_key'], outfile)
 
-        if @skip_upload
+	AWS.config(
+	  :access_key_id => cfg['access_key'],
+	  :secret_access_key => cfg['secret_key']
+	)
+	s3 = AWS::S3.new
 
-          cryptout = File.join(File.dirname(outfile),File.basename(outfile,'cloud')+'crypt')
+	bucket = s3.buckets[cfg['s3_bucket']]
+	unless bucket.exists?
+	  @output.puts "Aborting copy, bucket not found: #{cfg['s3_bucket']}"
+	  @logger.error "Aborting copy, bucket not found: #{cfg['s3_bucket']}" if @logger
+	  return
+	end
 
-          File.open(cryptout, 'w') do |f|
-            f.write(encrypted_deflated_csv)
-          end
+	object = bucket.objects[File.basename(outfile,'.*') + '.crypt']
 
-        else
+	RETRY.times do
 
-          AWS.config(
-            :access_key_id => cfg['access_key'],
-            :secret_access_key => cfg['secret_key']
-          )
-          s3 = AWS::S3.new
+	  object.write(:data => encrypted_deflated_csv, :server_side_encryption => :aes256)
 
-          bucket = s3.buckets[cfg['s3_bucket']]
-          unless bucket.exists?
-            @output.puts "Aborting copy, bucket not found: #{cfg['s3_bucket']}"
-            @logger.error "Aborting copy, bucket not found: #{cfg['s3_bucket']}" if @logger
-            return
-          end
+	  if object.exists?
+	    File.delete(outfile) if File.exists?(outfile)
+	    unless File.exists?(outfile)
+	      @output.puts "Deleted temp file: #{outfile}"
+	      @logger.info "Deleted temp file: #{outfile}" if @logger
+	    end
+	    break
+	  end
+	  sleep 2
+	end
 
-          object = bucket.objects[File.basename(outfile,'.*') + '.crypt']
-
-          RETRY.times do
-
-            object.write(:data => encrypted_deflated_csv, :server_side_encryption => :aes256)
-
-            if object.exists?
-              File.delete(outfile) if File.exists?(outfile)
-              unless File.exists?(outfile)
-                @output.puts "Deleted temp file: #{outfile}"
-                @logger.info "Deleted temp file: #{outfile}" if @logger
-              end
-              break
-            end
-            sleep 2
-          end
-
-          if object.exists?
-	    ###############################################
-	    # puts "-"*50
-	    # raw = object.read
-	    # puts inflate_decrypt(cfg['cipher_key'],raw )
-	    # puts "-"*50
-	    ###############################################
-            @output.puts "Wrote #{@vault.size} esri entries to cloud storage.\n\n"
-            @logger.info "Wrote #{@vault.size} esri entries to cloud storage." if @logger
-          else
-            @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}"
-            @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}" if @logger
-          end
-
-        end
+	if object.exists?
+	  ###############################################
+	  # puts "-"*50
+	  # raw = object.read
+	  # puts inflate_decrypt(cfg['cipher_key'],raw )
+	  # puts "-"*50
+	  ###############################################
+	  @output.puts "Wrote #{@vault.size} esri entries to cloud storage.\n\n"
+	  @logger.info "Wrote #{@vault.size} esri entries to cloud storage." if @logger
+	else
+	  @output.puts "Problem copying file to cloud storage. Kept it here: #{outfile}"
+	  @logger.error "Problem copying file to cloud storage. Kept it here: #{outfile}" if @logger
+	end
 
       when 'elasticsearch'
 
