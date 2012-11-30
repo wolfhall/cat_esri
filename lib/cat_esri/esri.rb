@@ -54,7 +54,7 @@ module CatEsri
   #----------
   # Check to see if directory should be skipped (case insensitve)
   def prune?(f)
-    @options[:quell].split('|').each do |p|
+    @options[:quell].split('?').each do |p|
       f = f.gsub('\\','').gsub('/','')
       p = p.gsub('\\','').gsub('/','').strip
       return true if f.casecmp(p) == 0
