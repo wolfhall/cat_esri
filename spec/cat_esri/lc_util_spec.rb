@@ -10,12 +10,6 @@ module CatEsri
       @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
     }
 
-    it "tests path" do
-      puts "-"*40
-      puts "hello"
-      puts File.expand_path('../', __FILE__)
-      puts "-"*40
-    end
 
     it "checksum should correctly generate a checksum" do
       @rasfile = File.join(@testdata,'test.mdb')

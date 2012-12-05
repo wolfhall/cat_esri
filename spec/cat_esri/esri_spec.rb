@@ -4,6 +4,11 @@ module CatEsri
 
   #----------
   describe Crawler do
+
+    # set gdal environment...
+    ENV["GDAL_DATA"] = File.expand_path('../../../gdal/data',__FILE__)
+    $LOAD_PATH.unshift File.expand_path('../../../gdal/apps',__FILE__)
+
     let(:output) { double('output').as_null_object }
     let(:crawler) { Crawler.new(output) }
 
@@ -11,46 +16,56 @@ module CatEsri
       Dir.glob("#{@testdata}/**/*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].{#{type}}")
     end
 
+    def delete_tmps
+      Dir.entries(@testdata).each do |f| 
+	File.delete(File.join(@testdata,f)) if f.match(/\d{16}/)
+      end
+    end
+
     before {
       @testdata = File.dirname(File.dirname(File.dirname(__FILE__)))+"/data"
+
       crawler.options = {
         :path => @testdata,
         :outdir => @testdata,
-        :xitems => 50000,
+        :xitems => 1000,
         :format => 'csv',
-        :group_name => 'test'
+        :group_name => 'test',
+	:max_features => 100
       }
+      delete_tmps
     }
 
     after{
-      Dir.entries(@testdata).each { |f|  File.delete(File.join(@testdata,f)) if f.match(/MAP_\d{16}/) }
+      delete_tmps
     }
 
-    #----------
-    describe "#find_esri" do
+    
+    describe "find_esri" do
 
+      #----------
       it "should ignore an empty directory" do
         crawler.options[:path] = File.join(@testdata,'empty')
         crawler.should_not_receive(:parse_shp)
         crawler.scan
       end
 
+      #----------
       it "should find shapefiles" do
-        crawler.options[:path] = @testdata
-        output.should_receive(:puts).with(/^Processing ESRI Shapefile:/).once
         crawler.scan
+	get_tmps('csv').size.should > 0
       end
 
+      #----------
       it "should find file geodatabases" do
-        crawler.options[:path] = @testdata
         crawler.options[:esrigdb] = true
         output.should_receive(:puts).with(/^Processing ESRI File Geodatabase:/).once
         crawler.scan
       end
 
+      #----------
       it "should find personal geodatabases if on Windows" do
         if crawler.os == "mingw32"
-          crawler.options[:path] = @testdata
           crawler.options[:esrigdb] = true
           output.should_receive(:puts).with(/^Processing ESRI Personal Geodatabase:/).once
           crawler.scan
@@ -61,26 +76,27 @@ module CatEsri
 
     end
 
-    #----------
-    describe "#prune" do
+    
+    describe "prune" do
 
+      #----------
       it "should exclude --quell (prune) dirs" do
-        crawler.options[:path] = @testdata
         crawler.options[:quell] = File.join(@testdata,'ggx_layer')
         crawler.prune?(File.join(@testdata,'ggx_layer')).should == true
       end
 
+      #----------
       it "should exclude non-matching dirs" do
-        crawler.options[:path] = @testdata
         crawler.options[:quell] = File.join(@testdata,'ggx_layer')
         crawler.prune?(File.join(@testdata,'bogus')).should == false
       end
 
     end
 
-    #----------
-    describe "#parse_shp" do
+    
+    describe "parse_shp" do
 
+      #----------
       it "should parse and output metadata on a valid shapefile" do
         crawler.options[:path] = File.join(@testdata,'AIRPORTS/AIRPORTS.shp')
         crawler.options[:format] = 'csv'
@@ -89,12 +105,14 @@ module CatEsri
         File.exist?(get_tmps('csv')[0]).should == true
       end
 
+      #----------
       it "should not parse a geoatlas layer without ggxlayer flag" do
         crawler.options[:path] = File.join(@testdata,'ggx_layer')
         output.should_not_receive(:puts).with(/^Processing ESRI Shapefile:/)
         crawler.scan
       end
 
+      #----------
       it "should parse a geoatlas layer with ggxlayer flag" do
         crawler.options[:path] = File.join(@testdata,'ggx_layer')
         crawler.options[:ggxlayer] = true
@@ -102,6 +120,7 @@ module CatEsri
         crawler.scan
       end
 
+      #----------
       it "should warn if path is invalid" do
         crawler.options[:path] = File.join(@testdata,'bogus.txt')
         output.should_receive(:puts).with(/^Invalid crawler path/)
@@ -120,10 +139,10 @@ module CatEsri
     end
 
 
-    #----------
     describe "#parse_pgdb" do
       if RbConfig::CONFIG['target_os'] == "mingw32"
 
+	#----------
         it "should not parse a personal geodatabase if the esrigdb flag is false" do
           crawler.options[:path] = File.join(@testdata)
           crawler.options[:esrigdb] = false
@@ -131,6 +150,7 @@ module CatEsri
           crawler.scan
         end
 
+	#----------
         it "should parse a personal geodatabase if the esrigdb flag is true" do
           crawler.options[:path] = File.join(@testdata,'test.mdb')
           crawler.options[:format] = 'csv'
@@ -152,10 +172,10 @@ module CatEsri
       end
     end
 
+    
+    describe "parse_fgdb" do
 
-    #----------
-    describe "#parse_fgdb" do
-
+      #----------
       it "should parse and output metadata on a valid file geodatabase" do
         crawler.options[:path] = File.join(@testdata,'mygdb.gdb')
         crawler.options[:format] = 'csv'
@@ -164,6 +184,7 @@ module CatEsri
         File.exist?(get_tmps('csv')[0]).should == true
       end
 
+      #----------
       it "should not parse a file geodatabase if the esrigdb flag is false" do
         crawler.options[:path] = File.join(@testdata,'mygdb.gdb')
         crawler.options[:esrigdb] = false
@@ -183,28 +204,28 @@ module CatEsri
     end
 
 
-    #----------
     describe "esri helper methods" do
       before{
         @shp = File.join(@testdata,'/AIRPORTS/AIRPORTS.shp')
       }
 
-      it "norm_spatialref should tease out coordinate system from messy string" do
-        line = <<-END
-        PROJCS["NAD_1983_UTM_Zone_13N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",
-          SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT
-          ["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER
-          ["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER
-          ["Central_Meridian",-105.0],PARAMETER["Scale_Factor",0.9996],PARAMETER
-          ["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]
-        END
-        crawler.norm_spatialref(line).length.should == 454
-      end
+      #----------
+      #it "norm_spatialref should tease out coordinate system from messy string" do
+      #  line = <<-END
+      #  PROJCS["NAD_1983_UTM_Zone_13N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",
+      #    SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT
+      #    ["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER
+      #    ["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER
+      #    ["Central_Meridian",-105.0],PARAMETER["Scale_Factor",0.9996],PARAMETER
+      #    ["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]
+      #  END
+      #  crawler.norm_spatialref(line).length.should == 454
+      #end
 
       #basically the same thing...
-      it "get_shp_coordsys should extract shapefile projection" do
-        crawler.get_shp_coordsys(@shp).length.should == 399
-      end
+      #it "get_shp_coordsys should extract shapefile projection" do
+      #  crawler.get_shp_coordsys(@shp).length.should == 399
+      #end
 
       it "get_dbf_cloud should extract cloud from shapefile .dbf" do
         crawler.get_dbf_cloud(@shp).size.should == 391

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE metadata SYSTEM "http://www.fgdc.gov/metadata/fgdc-std-001-1998.dtd">
+<metadata>
+	<idinfo>
+		<citation>
+			<citeinfo>
+				<origin>Colorado Department of Transportation</origin>
+				<pubdate>20061231</pubdate>
+				<title Sync="TRUE">AIRPORTS</title>
+				<geoform Sync="TRUE">vector digital data</geoform>
+				<ftname Sync="TRUE">AIRPORTS</ftname><pubinfo><publish>CDOT</publish></pubinfo><onlink Sync="TRUE">\\Hqdtd\Data\GISExternalData\MAPS2_DATA\COUNTY\DENV\AIRPORTS.shp</onlink></citeinfo>
+		</citation>
+		<descript>
+			<abstract>Features in this dataset represent the point locations of public or military airports in the state of Colorado.  Bounding coordinates and feature counts reflect a statewide extent.</abstract>
+			<purpose>Geographic data representing airports is required by the ISTEA and TEA-21 Federal legislation.</purpose>
+			<langdata Sync="TRUE">en</langdata></descript>
+		<timeperd>
+			<timeinfo>
+				<sngdate>
+					<caldate>20061231</caldate>
+				</sngdate>
+			</timeinfo>
+			<current>publication date</current>
+		</timeperd>
+		<status>
+			<progress>Complete</progress>
+			<update>Annually</update>
+		</status>
+		<spdom>
+			<bounding>
+				<westbc Sync="TRUE">-109.068602</westbc>
+				<eastbc Sync="TRUE">-101.993381</eastbc>
+				<northbc Sync="TRUE">41.002098</northbc>
+				<southbc Sync="TRUE">37.120770</southbc>
+			</bounding>
+			<lboundng><leftbc Sync="TRUE">157422.711000</leftbc><rightbc Sync="TRUE">753019.602000</rightbc><bottombc Sync="TRUE">4115232.038000</bottombc><topbc Sync="TRUE">4538990.004000</topbc></lboundng></spdom>
+		<keywords>
+			<theme>
+				<themekey>transportation</themekey>
+				<themekey>FAA</themekey>
+				<themekey>Federal Avaiation Administration</themekey>
+				<themekey>runway</themekey>
+				<themekey>landing</themekey>
+				<themekey>aircraft</themekey>
+				<themekey>airplane</themekey>
+				<themekey>helicopter</themekey>
+				<themekt>none</themekt></theme>
+		</keywords>
+		<accconst>None</accconst>
+		<useconst>There are no restrictions and legal prerequisites for using the data set.  The State of Colorado assumes no liability relating to the completeness, correctness, or fitness for use of this data</useconst>
+		<ptcontac>
+			<cntinfo>
+				<cntperp>
+					<cntper>Alice Moy</cntper>
+					<cntorg>CDOT</cntorg>
+				</cntperp>
+				<cntpos>Database Specialist</cntpos>
+				<cntaddr>
+					<addrtype>mailing address</addrtype>
+					<address>4201 E. Arkansas Ave., Shumate Building</address>
+					<city>Denver</city>
+					<state>CO</state>
+					<postal>80222-3604</postal>
+					<country>U.S.A.</country></cntaddr>
+				<cntvoice>(303)757-9523</cntvoice>
+				<cntemail>alice.moy@dot.state.co.us</cntemail>
+			</cntinfo>
+		</ptcontac>
+		<native Sync="TRUE">Microsoft Windows XP Version 5.1 (Build 2600) Service Pack 2; ESRI ArcCatalog 9.2.4.1420</native>
+		<natvform Sync="TRUE">Shapefile</natvform></idinfo>
+	<dataqual>
+		<posacc>
+			<horizpa>
+				<horizpar>Horizontal Accuracy based on airport locations published by the FAA</horizpar>
+			</horizpa>
+		</posacc>
+		<lineage>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>CDOT Division of Aeronautics</origin>
+						<title>2003-2004 Colorado Airport Directory</title>
+						<onlink>http://www.colorado-aeronautics.org/aeroairportsdirectory.htm</onlink>
+					</citeinfo>
+				</srccite>
+				<typesrc>online</typesrc>
+				<srccontr>Latitude &amp; longitude coordinates</srccontr>
+			</srcinfo>
+			<procstep>
+				<procdesc>Navajo Landing Strip was deleted</procdesc>
+				<proccont><cntinfo><cntperp><cntper>Alice Moy</cntper><cntorg>CDOT</cntorg></cntperp><cntpos>Database Specialist</cntpos><cntaddr><addrtype>mailing address</addrtype><address>4201 East Arkansas Ave., Shumate Building</address><city>Denver</city><state>CO</state><postal>80222</postal><country>U.S.A.</country></cntaddr></cntinfo></proccont></procstep>
+			<procstep>
+				<procdesc>Astronaut Rominger Airport is changed to Del Norte Municipal Airport</procdesc>
+			</procstep>
+			<procstep>
+				<procdesc>Gunnison County Airport changed to Gunnison-Crested Butte Regional Airport</procdesc>
+			</procstep>
+			<procstep>
+				<procdesc>Tri-County Airport changed to ERIE Municipal Airport</procdesc>
+			</procstep>
+			<procstep>
+				<procdesc>Airport's geographic coordinates are converted to UTM coordinates using ArcGIS tools.</procdesc>
+				<proccont>
+					<cntinfo>
+						<cntperp>
+							<cntper>Alice Moy</cntper>
+							<cntorg>CDOT</cntorg>
+						</cntperp>
+						<cntpos>Database Specialist</cntpos>
+						<cntaddr>
+							<addrtype>mailing address</addrtype>
+							<address>4201 E. Arkansas Ave., Empire Park B606</address>
+							<city>Denver</city>
+							<state>CO</state>
+							<postal>80222-3604</postal>
+						</cntaddr>
+						<cntvoice>(303)757-9523</cntvoice>
+						<cntemail>alice.moy@dot.state.co.us</cntemail>
+					</cntinfo>
+				</proccont>
+			</procstep>
+			<procstep><procdesc Sync="TRUE">Metadata imported.</procdesc><srcused Sync="TRUE">L:\Metadata\statemeta\STATE_META_AIRPORTS.xml</srcused><date Sync="TRUE">20050401</date><time Sync="TRUE">14161900</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\hqdtd\counties\Statewide\DTD_2004_GIS_PUBLISH.mdb</srcused><date Sync="TRUE">20050401</date><time Sync="TRUE">14244000</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\hqdtd\data\GISExternalData\DTD_EDIT_NONROADWAY.mdb</srcused><date Sync="TRUE">20060126</date><time Sync="TRUE">10292100</time></procstep><procstep><procdesc Sync="TRUE">Metadata imported.</procdesc><srcused Sync="TRUE">N:\GIS_Metadata\Statemeta\AIRPORTS.xml</srcused><date Sync="TRUE">20071030</date><time Sync="TRUE">14322800</time></procstep><procstep><procdesc Sync="TRUE">Dataset copied.</procdesc><srcused Sync="TRUE">\\hqdtd\Data\GISExternalData\MOYA_EDIT.mdb</srcused><date Sync="TRUE">20071031</date><time Sync="TRUE">15183400</time></procstep></lineage>
+	</dataqual>
+	<spdoinfo>
+		<direct Sync="TRUE">Vector</direct>
+		<ptvctinf>
+			<sdtsterm Name="AIRPORTS">
+				<sdtstype Sync="TRUE">Entity point</sdtstype>
+				<ptvctcnt Sync="TRUE">0</ptvctcnt>
+			</sdtsterm>
+			<esriterm Name="AIRPORTS"><efeatyp Sync="TRUE">Simple</efeatyp><efeageom Sync="TRUE">Point</efeageom><esritopo Sync="TRUE">FALSE</esritopo><efeacnt Sync="TRUE">0</efeacnt><spindex Sync="TRUE">FALSE</spindex><linrefer Sync="TRUE">FALSE</linrefer></esriterm></ptvctinf>
+	</spdoinfo>
+	<spref>
+		<horizsys>
+			<planar>
+				<planci>
+					<plance Sync="TRUE">coordinate pair</plance>
+					<coordrep>
+						<absres Sync="TRUE">0.000000</absres>
+						<ordres Sync="TRUE">0.000000</ordres>
+					</coordrep>
+					<plandu Sync="TRUE">meters</plandu>
+				</planci>
+				<gridsys><gridsysn Sync="TRUE">Universal Transverse Mercator</gridsysn><utm><utmzone Sync="TRUE">13</utmzone><transmer><sfctrmer Sync="TRUE">0.999600</sfctrmer><longcm Sync="TRUE">-105.000000</longcm><latprjo Sync="TRUE">0.000000</latprjo><feast Sync="TRUE">500000.000000</feast><fnorth Sync="TRUE">0.000000</fnorth></transmer></utm></gridsys></planar>
+			<geodetic>
+				<horizdn Sync="TRUE">North American Datum of 1983</horizdn>
+				<ellips Sync="TRUE">Geodetic Reference System 80</ellips>
+				<semiaxis Sync="TRUE">6378137.000000</semiaxis>
+				<denflat Sync="TRUE">298.257222</denflat>
+			</geodetic>
+			<cordsysn><geogcsn Sync="TRUE">GCS_North_American_1983</geogcsn><projcsn Sync="TRUE">NAD_1983_UTM_Zone_13N</projcsn></cordsysn></horizsys>
+		<vertdef>
+			<altsys>
+				<altunits>feet</altunits>
+				<altenc Sync="TRUE">Explicit elevation coordinate included with horizontal coordinates</altenc><altres Sync="TRUE">0.000010</altres></altsys>
+		</vertdef>
+	</spref>
+	<eainfo>
+		<detailed Name="AIRPORTS">
+			<attr><attrlabl Sync="TRUE">LONG_</attrlabl><attalias Sync="TRUE">LONG_</attalias><attrtype Sync="TRUE">Double</attrtype><attwidth Sync="TRUE">8</attwidth><atprecis Sync="TRUE">0</atprecis><attscale Sync="TRUE">0</attscale></attr><attr>
+				<attrlabl>LAT</attrlabl>
+				<attrdef>Airport's latitude</attrdef>
+				<attrdefs>AirNav website http://www.airnav.com data from FAA</attrdefs>
+			</attr>
+			<attr><attrlabl Sync="TRUE">OBJECTID</attrlabl><attalias Sync="TRUE">OBJECTID</attalias><attrtype Sync="TRUE">Number</attrtype><attwidth Sync="TRUE">9</attwidth><attrdef Sync="TRUE">Internal feature number.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom></attrdomv></attr><enttyp>
+				<enttypl Sync="TRUE">AIRPORTS</enttypl>
+				<enttypt Sync="TRUE">Feature Class</enttypt><enttypc Sync="TRUE">0</enttypc></enttyp>
+			<attr>
+				<attrlabl>NAME</attrlabl>
+				<attrdef>Airport name</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">127</attwidth></attr>
+			<attr>
+				<attrlabl>LOC_ID</attrlabl>
+				<attrdef>FAA Airport Identifier</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">50</attwidth></attr>
+			<attr>
+				<attrlabl>ELEV</attrlabl>
+				<attrdef>Airport elevation in feet</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>FUNC_LEVEL</attrlabl>
+				<attrdef>Functional role of the airport in Colorado's aiport system</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">50</attwidth></attr>
+			<attr>
+				<attrlabl>ASSOCCITY</attrlabl>
+				<attrdef>Name of nearest city or community to the airport.  Usually the airport's basis of support</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">50</attwidth></attr>
+			<attr>
+				<attrlabl>FIPSCITY</attrlabl>
+				<attrdef>FIPS City Code of county in which airport is located</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">5</attwidth></attr>
+			<attr>
+				<attrlabl>COUNTY</attrlabl>
+				<attrdef>Name of county in which airport is located</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">32</attwidth></attr>
+			<attr>
+				<attrlabl>FIPSCOUNTY</attrlabl>
+				<attrdef>FIPS county code of associated county.</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">5</attwidth></attr>
+			<attr>
+				<attrlabl>REGION</attrlabl>
+				<attrdef>CDOT Engineering region number in which the airport is located.</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>TPRID</attrlabl>
+				<attrdef>CDOT Transportation Planning Region in which the airport is located.</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>ISNHS</attrlabl>
+				<attrdef>Is the airport located near the National Highway System?</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">2</attwidth></attr>
+			<attr>
+				<attrlabl>NEARCITY</attrlabl>
+				<attrdef>Closest city to the airport</attrdef>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>NEARHWY</attrlabl>
+				<attrdef>Closest highway(s) to the airport</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrdomv>
+				</attrdomv>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">64</attwidth></attr>
+			<attr>
+				<attrlabl>AIRPORTTYP</attrlabl>
+				<attrdef>Types of aviation service provided</attrdef>
+				<attrdefs>CDOT Division of Aeronuatics</attrdefs>
+				<attrdomv>
+					<edom>
+						<edomv>CS</edomv>
+						<edomvd>Commercial Service</edomvd>
+					</edom>
+					<edom>
+						<edomv>GA</edomv>
+						<edomvd>General Aviation</edomvd>
+					</edom>
+					<edom>
+						<edomv>RLVR</edomv>
+						<edomvd>Reliever</edomvd>
+					</edom>
+					<edom>
+						<edomv>Military</edomv>
+						<edomvd>Military</edomvd>
+					</edom>
+				</attrdomv>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">16</attwidth></attr>
+			<attr>
+				<attrlabl>AIRCRAFTOP</attrlabl>
+				<attrdef>Aircraft operations</attrdef>
+				<attrdefs>http://www.airnav.com</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">50</attwidth></attr>
+			<attr>
+				<attrlabl>AIRPORTHOU</attrlabl>
+				<attrdef>Airport's hours of operation</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">127</attwidth></attr>
+			<attr>
+				<attrlabl>ANNUALOPS_</attrlabl>
+				<attrdef>Annual number of take-offs and landings</attrdef>
+				<attrdefs>http://www.gcr1.com/5010WEB/</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>ANNUALPASS</attrlabl>
+				<attrdef>Number of annual passengers</attrdef>
+				<attrdefs>http://www1.faa.gov/arp/planning/stats/index.cfm?ARPnav=stats</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>RUNWAYS</attrlabl>
+				<attrdef>Number of runways</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">2</attwidth></attr>
+			<attr>
+				<attrlabl>RUNWAYLENG</attrlabl>
+				<attrdef>Lengths of each runway</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>RUNWAYSURF</attrlabl>
+				<attrdef>Types of runway surfaces</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>LIGHTING</attrlabl>
+				<attrdef>Types of runway lighting</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>NAVIGATION</attrlabl>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>NEARRECREA</attrlabl>
+				<attrdef>Recreation areas near the airport</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>COMMENTS</attrlabl>
+				<attrdef>Comments on the airport</attrdef>
+				<attrdefs>CDOT Division of Aeronautics</attrdefs>
+				<attrtype Sync="TRUE">String</attrtype><attwidth Sync="TRUE">254</attwidth></attr>
+			<attr>
+				<attrlabl>X_COORD</attrlabl>
+				<attrdef>X coordinate - UTM Zone 13</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr>
+				<attrlabl>Y_COORD</attrlabl>
+				<attrdef>Y coordinate - UTM Zone 13</attrdef>
+				<attrdefs>CDOT Division of Transportation Development</attrdefs>
+				<attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><atnumdec Sync="TRUE">11</atnumdec></attr>
+			<attr><attrlabl Sync="TRUE">Shape</attrlabl><attalias Sync="TRUE">Shape</attalias><attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><attrdef Sync="TRUE">Feature geometry.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Coordinates defining the features.</udom></attrdomv><atnumdec Sync="TRUE">11</atnumdec></attr><attr><attrlabl Sync="TRUE">SHAPE</attrlabl><attalias Sync="TRUE">Shape</attalias><attrtype Sync="TRUE">Float</attrtype><attwidth Sync="TRUE">19</attwidth><attrdef Sync="TRUE">Feature geometry.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Coordinates defining the features.</udom></attrdomv><atnumdec Sync="TRUE">11</atnumdec></attr><attr><attrlabl Sync="TRUE">FID</attrlabl><attalias Sync="TRUE">FID</attalias><attrtype Sync="TRUE">OID</attrtype><attwidth Sync="TRUE">4</attwidth><atprecis Sync="TRUE">0</atprecis><attscale Sync="TRUE">0</attscale><attrdef Sync="TRUE">Internal feature number.</attrdef><attrdefs Sync="TRUE">ESRI</attrdefs><attrdomv><udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom></attrdomv></attr></detailed>
+	</eainfo>
+	<distinfo>
+		<resdesc>Downloadable Data</resdesc>
+		<stdorder>
+			<digform>
+				<digtinfo>
+					<formname>SHP</formname>
+					<transize>0.200</transize>
+					<dssize Sync="TRUE">0.000</dssize></digtinfo>
+				<digtopt>
+					<onlinopt>
+						<computer>
+							<networka>
+								<networkr>http://www.dot.state.co.us</networkr>
+							</networka>
+						</computer>
+					</onlinopt>
+				</digtopt>
+			</digform>
+		</stdorder>
+	</distinfo>
+	<metainfo>
+		<metd Sync="TRUE">20080401</metd>
+		<metc>
+			<cntinfo>
+				<cntperp>
+					<cntper>Lou Henefeld</cntper>
+					<cntorg>CDOT</cntorg>
+				</cntperp>
+				<cntpos>GIS Support Unit Manager</cntpos>
+				<cntaddr>
+					<addrtype>mailing address</addrtype>
+					<address>4201 E. Arkansas Ave, Shumate Building</address>
+					<city>Denver</city>
+					<state>CO</state>
+					<postal>80222-3604</postal>
+					<country>U.S.A.</country></cntaddr>
+				<cntvoice>303-757-9809</cntvoice>
+				<cntemail>louis.henefeld@dot.state.co.us</cntemail><hours>8:00 a.m. to 5:00 p.m.</hours></cntinfo>
+		</metc>
+		<metstdn Sync="TRUE">FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+		<metstdv Sync="TRUE">FGDC-STD-001-1998</metstdv>
+		<mettc Sync="TRUE">local time</mettc>
+		<langmeta Sync="TRUE">en</langmeta><metextns><onlink Sync="TRUE">http://www.esri.com/metadata/esriprof80.html</onlink><metprof Sync="TRUE">ESRI Metadata Profile</metprof></metextns></metainfo>
+	<Esri><ModDate>20080401</ModDate><ModTime>10034900</ModTime><CreaDate>20071031</CreaDate><CreaTime>15183400</CreaTime><SyncOnce>FALSE</SyncOnce><SyncDate>20080401</SyncDate><SyncTime>10034900</SyncTime><DataProperties><lineage><Process ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CopyFeatures" Date="20061227" Time="163227">CopyFeatures C:\2006Doc\MOYA_EDIT.mdb\AVIATION\AIRPORTS N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS_1 # 0 0 0</Process><Process Name="Copy Features" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CopyFeatures" Date="20070314" Time="093551">CopyFeatures N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS "Database Connections\HQDEVARCSDE01.AVIATION.sde\AVIATION.AIRPORTS" # 0 0 0</Process><Process Name="Feature Class To Feature Class" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Conversion Tools.tbx\FeatureClassToFeatureClass" Date="20080401" Time="100349">FeatureClassToFeatureClass "Input Layer" N:\GISExternalData\MAPS2_DATA\COUNTY\DENV AIRPORTS.shp # "OBJECTID OBJECTID true true false 4 Long 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,OBJECTID,-1,-1;NAME NAME true true false 127 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,NAME,-1,-1;LOC_ID LOC_ID true true false 50 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,LOC_ID,-1,-1;ELEV ELEV true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,ELEV,-1,-1;FUNC_LEVEL FUNC_LEVEL true true false 50 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,FUNC_LEVEL,-1,-1;ASSOCCITY ASSOCCITY true true false 50 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,ASSOCCITY,-1,-1;FIPSCITY FIPSCITY true true false 5 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,FIPSCITY,-1,-1;COUNTY COUNTY true true false 32 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,COUNTY,-1,-1;FIPSCOUNTY FIPSCOUNTY true true false 5 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,FIPSCOUNTY,-1,-1;REGION REGION true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,REGION,-1,-1;TPRID TPRID true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,TPRID,-1,-1;ISNHS ISNHS true true false 2 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,ISNHS,-1,-1;NEARCITY NEARCITY true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,NEARCITY,-1,-1;NEARHWY NEARHWY true true false 64 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,NEARHWY,-1,-1;AIRPORTTYP AIRPORTTYP true true false 16 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,AIRPORTTYP,-1,-1;AIRCRAFTOP AIRCRAFTOP true true false 50 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,AIRCRAFTOP,-1,-1;AIRPORTHOU AIRPORTHOU true true false 127 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,AIRPORTHOU,-1,-1;ANNUALOPS_ ANNUALOPS_ true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,ANNUALOPS_,-1,-1;ANNUALPASS ANNUALPASS true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,ANNUALPASS,-1,-1;RUNWAYS RUNWAYS true true false 2 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,RUNWAYS,-1,-1;RUNWAYLENG RUNWAYLENG true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,RUNWAYLENG,-1,-1;RUNWAYSURF RUNWAYSURF true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,RUNWAYSURF,-1,-1;LIGHTING LIGHTING true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,LIGHTING,-1,-1;NAVIGATION NAVIGATION true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,NAVIGATION,-1,-1;NEARRECREA NEARRECREA true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,NEARRECREA,-1,-1;COMMENTS COMMENTS true true false 254 Text 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,COMMENTS,-1,-1;X_COORD X_COORD true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,X_COORD,-1,-1;Y_COORD Y_COORD true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,Y_COORD,-1,-1;LAT LAT true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,LAT,-1,-1;LONG_ LONG_ true true false 8 Double 0 0 ,First,#,N:\GISExternalData\DTD_EDIT_NONROADWAY.mdb\AVIATION\AIRPORTS,LONG_,-1,-1" # N:\GISExternalData\MAPS2_DATA\COUNTY\DENV\AIRPORTS.shp</Process><Process Name="Add Spatial Index" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddSpatialIndex" Date="20080401" Time="100350">AddSpatialIndex N:\GISExternalData\MAPS2_DATA\COUNTY\DENV\AIRPORTS.shp 0 0 0 N:\GISExternalData\MAPS2_DATA\COUNTY\DENV\AIRPORTS.shp</Process></lineage></DataProperties><PublishStatus>Published</PublishStatus><MetaID>{DFDCCCAA-8E49-442B-A14B-BA1DE83AE197}</MetaID></Esri><mdDateSt Sync="TRUE">20080401</mdDateSt><dataIdInfo><envirDesc Sync="TRUE">Microsoft Windows XP Version 5.1 (Build 2600) Service Pack 2; ESRI ArcCatalog 9.2.4.1420</envirDesc><dataLang><languageCode Sync="TRUE" value="en"></languageCode></dataLang><idCitation><resTitle Sync="TRUE">AIRPORTS</resTitle><presForm><PresFormCd Sync="TRUE" value="005"></PresFormCd></presForm></idCitation><spatRpType><SpatRepTypCd Sync="TRUE" value="001"></SpatRepTypCd></spatRpType><dataExt><geoEle><GeoBndBox esriExtentType="native"><westBL Sync="TRUE">157422.711</westBL><eastBL Sync="TRUE">753019.602</eastBL><northBL Sync="TRUE">4538990.004</northBL><southBL Sync="TRUE">4115232.038</southBL><exTypeCode Sync="TRUE">1</exTypeCode></GeoBndBox></geoEle></dataExt><geoBox esriExtentType="decdegrees"><westBL Sync="TRUE">-109.068602</westBL><eastBL Sync="TRUE">-101.993381</eastBL><northBL Sync="TRUE">41.002098</northBL><southBL Sync="TRUE">37.12077</southBL><exTypeCode Sync="TRUE">1</exTypeCode></geoBox></dataIdInfo><mdLang><languageCode Sync="TRUE" value="en"></languageCode></mdLang><mdStanName Sync="TRUE">ISO 19115 Geographic Information - Metadata</mdStanName><mdStanVer Sync="TRUE">DIS_ESRI1.0</mdStanVer><mdChar><CharSetCd Sync="TRUE" value="004"></CharSetCd></mdChar><mdHrLv><ScopeCd Sync="TRUE" value="005"></ScopeCd></mdHrLv><mdHrLvName Sync="TRUE">dataset</mdHrLvName><distInfo><distributor><distorTran><onLineSrc><orDesc Sync="TRUE">002</orDesc><linkage Sync="TRUE">file://\\Hqdtd\Data\GISExternalData\MAPS2_DATA\COUNTY\DENV\AIRPORTS.shp</linkage><protocol Sync="TRUE">Local Area Network</protocol></onLineSrc><transSize Sync="TRUE">0.000</transSize></distorTran><distorFormat><formatName Sync="TRUE">Shapefile</formatName></distorFormat></distributor></distInfo><refSysInfo><RefSystem><refSysID><identCode Sync="TRUE">NAD_1983_UTM_Zone_13N</identCode></refSysID></RefSystem></refSysInfo><spatRepInfo><VectSpatRep><topLvl><TopoLevCd Sync="TRUE" value="001"></TopoLevCd></topLvl><geometObjs Name="AIRPORTS"><geoObjTyp><GeoObjTypCd Sync="TRUE" value="004"></GeoObjTypCd></geoObjTyp><geoObjCnt Sync="TRUE">0</geoObjCnt></geometObjs></VectSpatRep></spatRepInfo></metadata>

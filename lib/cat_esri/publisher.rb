@@ -86,6 +86,7 @@ module CatEsri
             sql = "insert into #{table_name} (#{r.keys.collect{|x|x.to_s}.join(',')}) values (#{(['?'] * r.keys.size).join(',')})"
 	    ins = db.prepare(sql)
 	    ins.execute(*r.values)
+	    ins.close
 	  end
           db.execute("commit")
 
@@ -95,6 +96,8 @@ module CatEsri
         rescue Exception => e
 	  @output.puts "#{e.message} #{e.backtrace.inspect}"
 	  @logger.error "#{e.message} #{e.backtrace.inspect}" if @logger      
+	ensure
+	  db.close
         end
 
       when 'csv'
